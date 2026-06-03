@@ -1,0 +1,26 @@
+{
+  "name": "agrikart-tests",
+  "version": "1.0.0",
+  "description": "Executable test suite for AgriKart",
+  "scripts": {
+    "start":         "node run_tests.js",
+    "test":          "node run_tests.js",
+    "test:db":       "npx jest database --runInBand --verbose --forceExit",
+    "test:backend":  "npx jest backend  --runInBand --verbose --forceExit",
+    "test:socket":   "npx jest socket   --runInBand --verbose --forceExit",
+    "test:frontend": "npx jest frontend --runInBand --verbose --forceExit"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testTimeout": 15000,
+    "setupFiles": ["./setup.js"],
+    "testMatch": ["**/*.test.js"]
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "axios": "^1.7.0",
+    "@supabase/supabase-js": "^2.39.0",
+    "socket.io-client": "^4.7.2",
+    "dotenv": "^16.4.5"
+  }
+}
