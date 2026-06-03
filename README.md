@@ -5,7 +5,7 @@
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green?logo=node.js)](https://nodejs.org/)
 [![Supabase](<https://img.shields.io/badge/Database-Supabase%20(PostgreSQL)-3ECF8E?logo=supabase>)](https://supabase.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.4-blue?logo=typescript)](https://www.typescriptlang.org/)
-[![Socket.io](https://img.shields.io/badge/Real--time-Socket.io-black?logo=socket.io)](https://socket.io/)
+[![Socket.io](https://img.shields.io/badge/Socket.io-black?logo=socket.io)](https://socket.io/)
 
 > **Connecting Farmers with Vendors Directly** — A modern agricultural marketplace built for the Indian farming community.
 
