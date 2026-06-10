@@ -94,3 +94,8 @@ venv/
 *.zip
 .temp/
 tmp/
+.env.example
+env.txt
+.venv
+.pytest_cache
+.sixth

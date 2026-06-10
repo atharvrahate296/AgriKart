@@ -77,9 +77,24 @@ async function seed() {
       });
     }
 
-    // 2. Insert into public.users
-    console.log('Inserting into public.users...');
+    // 2. Insert into public.users and public.profiles
+    console.log('Inserting into public.users and profiles...');
     for (const u of seededUsers) {
+      const { error: profileError } = await supabase.from('profiles').upsert({
+        id: u.id,
+        email: u.email,
+        full_name: u.fullName,
+        phone: u.phone,
+        role: u.role,
+        verification_status: 'approved',
+        email_verified: true,
+        phone_verified: true
+      });
+
+      if (profileError) {
+        console.error(`Error inserting profile ${u.email}:`, profileError);
+      }
+
       const { error: userError } = await supabase.from('users').upsert({
         id: u.id,
         email: u.email,
