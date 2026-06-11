@@ -3,7 +3,6 @@
   "version": "2.0.0",
   "description": "AgriKart 2.0 - Production-grade Agricultural Platform Backend API",
   "main": "dist/index.js",
-  "type": "module",
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
