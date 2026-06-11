@@ -204,7 +204,7 @@ app.use(
 /**
  * Start Server
  */
-const PORT = process.env.BACKEND_PORT || 3001
+const PORT = process.env.PORT || process.env.BACKEND_PORT || 3001
 const HOST = process.env.BACKEND_HOST || 'localhost'
 
 const server = app.listen(PORT, () => {
