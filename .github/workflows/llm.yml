@@ -1,0 +1,37 @@
+name: LLM Service CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'llm/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'llm/**'
+
+jobs:
+  test:
+    name: Test LLM FastAPI Service
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+        cache-dependency-path: 'llm/requirements.txt'
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r llm/requirements.txt
+        pip install pytest httpx
+
+    - name: Run PyTest Suite
+      run: |
+        python -m pytest llm/tests

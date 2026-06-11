@@ -5,7 +5,7 @@ import { FiArrowRight, FiTruck, FiShield, FiHeadphones } from 'react-icons/fi'
 
 export default function HeroSection() {
   return (
-    <div className="relative bg-gradient-to-r from-green-600 via-green-500 to-emerald-600 text-white py-20 overflow-hidden">
+    <div className="relative bg-gradient-to-r from-green-600 via-green-500 to-emerald-600 text-white pt-8 pb-10 md:pt-12 md:pb-14 overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute inset-0" style={{
