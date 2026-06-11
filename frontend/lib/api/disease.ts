@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
 async function getHeaders() {
   const session = (await supabase.auth.getSession()).data.session
@@ -100,20 +100,4 @@ export const verifyPrediction = async (
   return (await res.json()).data
 }
 
-export const triggerRetraining = async (epochs?: number, batchSize?: number, learningRate?: number) => {
-  const headers = await getHeaders()
-  const res = await fetch(`${API_URL}/api/disease/retrain`, {
-    method: 'POST',
-    headers: {
-      ...headers,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      epochs,
-      batch_size: batchSize,
-      learning_rate: learningRate,
-    }),
-  })
-  if (!res.ok) throw new Error('Failed to trigger retraining')
-  return (await res.json()).data
-}
+

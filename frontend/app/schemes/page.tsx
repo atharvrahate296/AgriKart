@@ -24,32 +24,21 @@ export default function SchemesPage() {
   const [eligibleSchemes, setEligibleSchemes] = useState<any[] | null>(null)
   const [isEvaluating, setIsEvaluating] = useState(false)
 
+  // Application Modal state — MOVED above early returns to fix hooks ordering
+  const [appliedId, setAppliedId] = useState<string | null>(null)
+  const [applyingSchemeId, setApplyingSchemeId] = useState<string | null>(null)
+
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/auth/login?redirect=/schemes')
     }
   }, [user, authLoading, router])
 
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-      </div>
-    )
-  }
-
-  if (!user) {
-    return null
-  }
-
-
-  // Application Modal state
-  const [appliedId, setAppliedId] = useState<string | null>(null)
-  const [applyingSchemeId, setApplyingSchemeId] = useState<string | null>(null)
-
   useEffect(() => {
-    loadSchemes()
-  }, [stateFilter, cropFilter])
+    if (user) {
+      loadSchemes()
+    }
+  }, [stateFilter, cropFilter, user])
 
   const loadSchemes = async () => {
     setLoading(true)
@@ -100,6 +89,18 @@ export default function SchemesPage() {
     } finally {
       setApplyingSchemeId(null)
     }
+  }
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return null
   }
 
   return (

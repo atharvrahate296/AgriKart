@@ -44,13 +44,23 @@ async function getUserVendorId(userId: string): Promise<string> {
     .from('vendors')
     .select('id')
     .eq('user_id', userId)
-    .single();
+    .maybeSingle();
 
-  if (error || !vendor) {
+  if (vendor) {
+    return vendor.id;
+  }
+
+  const { data: legacyVendor, error: legacyError } = await supabase
+    .from('vendors')
+    .select('id')
+    .eq('id', userId)
+    .maybeSingle();
+
+  if (legacyError || !legacyVendor) {
     throw new AuthorizationError('Vendor profile not found for this user');
   }
 
-  return vendor.id;
+  return legacyVendor.id;
 }
 
 /* ==========================================================================

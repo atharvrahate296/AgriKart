@@ -14,6 +14,9 @@ export default function VendorCard({ vendor, productId }: any) {
   const { user } = useAuth()
   const socketRef = useRef<Socket | null>(null)
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
+  const receiverId = vendor?.user_id || vendor?.id
+  const vendorName = vendor?.name || vendor?.business_name || vendor?.company_name || 'Vendor'
+  const vendorPhone = vendor?.business_phone || vendor?.phone_business || vendor?.phone
 
   // 1. Fetch chat history and initialize Socket.io when chat is opened
   useEffect(() => {
@@ -25,7 +28,7 @@ export default function VendorCard({ vendor, productId }: any) {
         const { data, error } = await supabase
           .from('messages')
           .select('*')
-          .or(`and(sender_id.eq.${user.id},receiver_id.eq.${vendor.id}),and(sender_id.eq.${vendor.id},receiver_id.eq.${user.id})`)
+          .or(`and(sender_id.eq.${user.id},receiver_id.eq.${receiverId}),and(sender_id.eq.${receiverId},receiver_id.eq.${user.id})`)
           .order('created_at', { ascending: true })
 
         if (error) throw error
@@ -42,7 +45,7 @@ export default function VendorCard({ vendor, productId }: any) {
     const socket = io(socketUrl)
     socketRef.current = socket
 
-    socket.emit('join_chat', { user_id: user.id, vendor_id: vendor.id })
+    socket.emit('join_chat', { user_id: user.id, vendor_id: receiverId })
 
     socket.on('receive_message', (data) => {
       setMessages((prev) => [...prev, {
@@ -73,7 +76,7 @@ export default function VendorCard({ vendor, productId }: any) {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!message.trim() || !user || !vendor || !socketRef.current) return
+    if (!message.trim() || !user || !receiverId || !socketRef.current) return
 
     const msgText = message.trim()
     setMessage('')
@@ -81,7 +84,7 @@ export default function VendorCard({ vendor, productId }: any) {
     // Emit message to Socket.io server
     socketRef.current.emit('send_message', {
       sender_id: user.id,
-      receiver_id: vendor.id,
+      receiver_id: receiverId,
       message: msgText,
       product_id: productId
     })
@@ -90,7 +93,7 @@ export default function VendorCard({ vendor, productId }: any) {
     setMessages((prev) => [...prev, {
       id: Math.random().toString(),
       sender_id: user.id,
-      receiver_id: vendor.id,
+      receiver_id: receiverId,
       message: msgText,
       created_at: new Date().toISOString()
     }])
@@ -99,7 +102,7 @@ export default function VendorCard({ vendor, productId }: any) {
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setMessage(e.target.value)
     if (socketRef.current && user && vendor) {
-      socketRef.current.emit('typing', { user_id: user.id, vendor_id: vendor.id })
+      socketRef.current.emit('typing', { user_id: user.id, vendor_id: receiverId })
     }
   }
 
@@ -108,9 +111,9 @@ export default function VendorCard({ vendor, productId }: any) {
       {/* Vendor Profile */}
       <div className="text-center mb-6 pb-6 border-b">
         <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold">
-          {vendor?.name?.charAt(0) || vendor?.company_name?.charAt(0) || 'V'}
+          {vendorName.charAt(0)}
         </div>
-        <h3 className="text-xl font-bold text-gray-900">{vendor?.name || vendor?.company_name || 'Vendor'}</h3>
+        <h3 className="text-xl font-bold text-gray-900">{vendorName}</h3>
         <p className="text-gray-600 text-sm mt-1">{vendor?.location || 'Unknown location'}</p>
 
         {/* Rating */}
@@ -132,19 +135,19 @@ export default function VendorCard({ vendor, productId }: any) {
       <div className="space-y-3 mb-6">
         {/* Phone */}
         <a
-          href={`tel:${vendor?.phone || vendor?.phone_business}`}
+          href={`tel:${vendorPhone || ''}`}
           className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition"
         >
           <FiPhone className="text-blue-600 flex-shrink-0" size={20} />
           <div>
             <p className="text-xs text-gray-600">Call Vendor</p>
-            <p className="font-semibold text-gray-900">{vendor?.phone || vendor?.phone_business || 'N/A'}</p>
+            <p className="font-semibold text-gray-900">{vendorPhone || 'N/A'}</p>
           </div>
         </a>
 
         {/* WhatsApp */}
         <a
-          href={`https://wa.me/${vendor?.phone || vendor?.phone_business}`}
+          href={`https://wa.me/${vendorPhone || ''}`}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-3 p-3 bg-green-50 rounded-lg hover:bg-green-100 transition"

@@ -65,50 +65,50 @@ Farmers face multiple challenges:
 
 ### Backend
 
-| Technology            | Version | Role                            |
-| --------------------- | ------- | ------------------------------- |
-| **Node.js**           | 18+     | Runtime                         |
-| **Express.js**        | 4.18    | REST API framework              |
-| **TypeScript**        | 5.4     | Type safety                     |
-| **Socket.io**         | 4.7     | WebSocket server                |
-| **Supabase Admin SDK**| 2.x     | Database & auth management      |
-| **Zod**               | 3.x     | Schema validation               |
-| **JWT**               | 9.x     | Token-based authentication      |
-| **Winston**           | 3.x     | Structured logging              |
-| **CORS**              | 2.8     | Cross-origin resource sharing   |
+| Technology             | Version | Role                          |
+| ---------------------- | ------- | ----------------------------- |
+| **Node.js**            | 18+     | Runtime                       |
+| **Express.js**         | 4.18    | REST API framework            |
+| **TypeScript**         | 5.4     | Type safety                   |
+| **Socket.io**          | 4.7     | WebSocket server              |
+| **Supabase Admin SDK** | 2.x     | Database & auth management    |
+| **Zod**                | 3.x     | Schema validation             |
+| **JWT**                | 9.x     | Token-based authentication    |
+| **Winston**            | 3.x     | Structured logging            |
+| **CORS**               | 2.8     | Cross-origin resource sharing |
 
 ### ML Service
 
-| Technology            | Version | Role                            |
-| --------------------- | ------- | ------------------------------- |
-| **Python**            | 3.10+   | Runtime                         |
-| **FastAPI**           | 0.100+  | High-performance API framework  |
-| **PyTorch**           | 2.x     | Deep learning framework         |
-| **OpenCV**            | 4.8     | Image processing               |
-| **NumPy/Pandas**      | Latest  | Data processing                |
-| **MLflow**            | 2.x     | Experiment tracking & registry  |
-| **Scikit-learn**      | 1.x     | ML utilities                   |
+| Technology       | Version | Role                           |
+| ---------------- | ------- | ------------------------------ |
+| **Python**       | 3.10+   | Runtime                        |
+| **FastAPI**      | 0.100+  | High-performance API framework |
+| **PyTorch**      | 2.x     | Deep learning framework        |
+| **OpenCV**       | 4.8     | Image processing               |
+| **NumPy/Pandas** | Latest  | Data processing                |
+| **MLflow**       | 2.x     | Experiment tracking & registry |
+| **Scikit-learn** | 1.x     | ML utilities                   |
 
 ### AI Assistant Service
 
-| Technology            | Version | Role                            |
-| --------------------- | ------- | ------------------------------- |
-| **Python**            | 3.10+   | Runtime                         |
-| **FastAPI**           | 0.100+  | API framework                   |
-| **LangChain**         | 0.1.x   | LLM orchestration              |
-| **LangGraph**         | 0.1.x   | Agent framework                |
-| **Gemini/OpenAI**     | Latest  | LLM providers                  |
-| **FAISS/Pinecone**    | Latest  | Vector stores                  |
+| Technology         | Version | Role              |
+| ------------------ | ------- | ----------------- |
+| **Python**         | 3.10+   | Runtime           |
+| **FastAPI**        | 0.100+  | API framework     |
+| **LangChain**      | 0.1.x   | LLM orchestration |
+| **LangGraph**      | 0.1.x   | Agent framework   |
+| **Gemini/OpenAI**  | Latest  | LLM providers     |
+| **FAISS/Pinecone** | Latest  | Vector stores     |
 
 ### Cloud & Infrastructure
 
-| Service                              | Role                                |
-| ------------------------------------ | ----------------------------------- |
-| **Supabase**                         | PostgreSQL + Auth + Storage + RLS   |
-| **Vercel**                           | Frontend deployment & CDN           |
-| **Railway / Render**                 | Backend + ML + LLM deployment       |
-| **GitHub Actions**                   | CI/CD pipelines                     |
-| **DagsHub** _(optional)_             | ML experiments & model registry     |
+| Service                  | Role                              |
+| ------------------------ | --------------------------------- |
+| **Supabase**             | PostgreSQL + Auth + Storage + RLS |
+| **Vercel**               | Frontend deployment & CDN         |
+| **Railway / Render**     | Backend + ML + LLM deployment     |
+| **GitHub Actions**       | CI/CD pipelines                   |
+| **DagsHub** _(optional)_ | ML experiments & model registry   |
 
 ---
 
@@ -378,40 +378,42 @@ AgriKart/
 ```
 
 ---
-│   │   └── providers.tsx
-│   ├── lib/                     # Utilities, store, API client
-│   ├── styles/                  # Global styles
-│   ├── public/                  # Static assets
-│   ├── tailwind.config.ts
-│   ├── next.config.mjs
-│   └── .env.local.example
+
+│ │ └── providers.tsx
+│ ├── lib/ # Utilities, store, API client
+│ ├── styles/ # Global styles
+│ ├── public/ # Static assets
+│ ├── tailwind.config.ts
+│ ├── next.config.mjs
+│ └── .env.local.example
 │
-├── backend/                     # Node.js + Express API Server
-│   ├── server.js                # Main entry — REST API + Socket.io
-│   ├── config/                  # DB & service configuration
-│   ├── middleware/              # Auth & validation middleware
-│   ├── check_db.js              # Database connection health check
-│   ├── seed_db.js               # Database seeding script
-│   ├── package.json
-│   └── .env.example
+├── backend/ # Node.js + Express API Server
+│ ├── server.js # Main entry — REST API + Socket.io
+│ ├── config/ # DB & service configuration
+│ ├── middleware/ # Auth & validation middleware
+│ ├── check_db.js # Database connection health check
+│ ├── seed_db.js # Database seeding script
+│ ├── package.json
+│ └── .env.example
 │
-├── docs/                        # Documentation
-│   ├── API.md                   # REST API reference
-│   ├── DATABASE.md              # Schema & table definitions
-│   └── DEPLOYMENT.md            # Cloud deployment guide
+├── docs/ # Documentation
+│ ├── API.md # REST API reference
+│ ├── DATABASE.md # Schema & table definitions
+│ └── DEPLOYMENT.md # Cloud deployment guide
 │
-├── tests/                       # Executable Jest test suite
-│   ├── run_tests.js             # ▶ Master runner  →  node run_tests.js
-│   ├── setup.js                 # Loads backend/.env before tests
-│   ├── package.json             # Jest + test dependencies
-│   ├── database.test.js         # Supabase connection & CRUD tests
-│   ├── backend.test.js          # REST API endpoint tests (axios)
-│   ├── socket.test.js           # Socket.io real-time event tests
-│   └── frontend.test.js         # Next.js page smoke tests (axios)
+├── tests/ # Executable Jest test suite
+│ ├── run_tests.js # ▶ Master runner → node run_tests.js
+│ ├── setup.js # Loads backend/.env before tests
+│ ├── package.json # Jest + test dependencies
+│ ├── database.test.js # Supabase connection & CRUD tests
+│ ├── backend.test.js # REST API endpoint tests (axios)
+│ ├── socket.test.js # Socket.io real-time event tests
+│ └── frontend.test.js # Next.js page smoke tests (axios)
 │
 ├── .gitignore
-└── README.md                    # This file
-```
+└── README.md # This file
+
+````
 
 ---
 
@@ -480,7 +482,7 @@ cp .env.example .env
 # Edit .env with your configuration
 # Required: SUPABASE_URL, SUPABASE_SERVICE_KEY
 # Optional: LLM_API_KEY (for AI Assistant in Phase 8)
-```
+````
 
 ### 2. Backend Setup
 
@@ -492,7 +494,7 @@ npm install
 
 # Start Express server (development)
 npm run dev
-# ✅ API available at http://localhost:4000
+# ✅ API available at http://localhost:3001
 ```
 
 ### 3. Frontend Setup
@@ -567,15 +569,15 @@ supabase db push
 
 ## 📚 Documentation
 
-| Document | Purpose |
-|----------|---------|
-| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design, principles, data flows |
-| [DATABASE.md](docs/DATABASE.md) | Schema design, RLS policies, relationships |
-| [API.md](docs/API.md) | REST API endpoints, request/response formats |
-| [ML_PIPELINE.md](docs/ML_PIPELINE.md) | Model training, inference, MLflow setup |
-| [DEPLOYMENT.md](docs/DEPLOYMENT.md) | Production deployment, scaling, monitoring |
-| [CONTRIBUTION.md](docs/CONTRIBUTION.md) | Development guidelines, code standards |
-| [SECURITY.md](docs/SECURITY.md) | Authentication, authorization, data protection |
+| Document                                | Purpose                                        |
+| --------------------------------------- | ---------------------------------------------- |
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design, principles, data flows          |
+| [DATABASE.md](docs/DATABASE.md)         | Schema design, RLS policies, relationships     |
+| [API.md](docs/API.md)                   | REST API endpoints, request/response formats   |
+| [ML_PIPELINE.md](docs/ML_PIPELINE.md)   | Model training, inference, MLflow setup        |
+| [DEPLOYMENT.md](docs/DEPLOYMENT.md)     | Production deployment, scaling, monitoring     |
+| [CONTRIBUTION.md](docs/CONTRIBUTION.md) | Development guidelines, code standards         |
+| [SECURITY.md](docs/SECURITY.md)         | Authentication, authorization, data protection |
 
 ---
 
@@ -632,22 +634,23 @@ supabase db reset
 
 AgriKart 2.0 is built incrementally across 10 phases, each delivering production-grade features:
 
-| Phase | Module | Status | Key Deliverables |
-|-------|--------|--------|------------------|
-| **1** | Project Structure | ✅ **COMPLETE** | [Architecture docs](docs/ARCHITECTURE.md), [Security guide](docs/SECURITY.md), [Contribution guide](docs/CONTRIBUTION.md) |
-| **2** | Supabase Design | ✅ **COMPLETE** | [18-table schema](docs/DATABASE.md), RLS policies, indexes |
-| **3** | Authentication | ✅ **COMPLETE** | [JWT middleware](backend/src/middleware/auth.ts), [Auth service](backend/src/services/auth/), [Role-based RBAC](backend/src/services/auth/roleService.ts), [20+ files](PHASE_3_FILES_INVENTORY.md) |
-| **4** | Marketplace | ⏳ Next | Products, vendors, orders, cart |
-| **5** | Disease Intelligence | ⏳ Planned | ML integration, image upload, predictions |
-| **6** | Government Schemes | ⏳ Planned | Scheme hub, eligibility checker |
-| **7** | Agri News | ⏳ Planned | News feed, alerts, categorization |
-| **8** | AI Assistant | ⏳ Planned | LangChain RAG, multi-turn chat |
-| **9** | ML Pipeline | ⏳ Planned | Training, MLflow, DagsHub, experimentation |
-| **10** | CI/CD & Deploy | ⏳ Planned | GitHub Actions, automated testing |
+| Phase  | Module               | Status          | Key Deliverables                                                                                                                                                                                   |
+| ------ | -------------------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1**  | Project Structure    | ✅ **COMPLETE** | [Architecture docs](docs/ARCHITECTURE.md), [Security guide](docs/SECURITY.md), [Contribution guide](docs/CONTRIBUTION.md)                                                                          |
+| **2**  | Supabase Design      | ✅ **COMPLETE** | [18-table schema](docs/DATABASE.md), RLS policies, indexes                                                                                                                                         |
+| **3**  | Authentication       | ✅ **COMPLETE** | [JWT middleware](backend/src/middleware/auth.ts), [Auth service](backend/src/services/auth/), [Role-based RBAC](backend/src/services/auth/roleService.ts), [20+ files](PHASE_3_FILES_INVENTORY.md) |
+| **4**  | Marketplace          | ⏳ Next         | Products, vendors, orders, cart                                                                                                                                                                    |
+| **5**  | Disease Intelligence | ⏳ Planned      | ML integration, image upload, predictions                                                                                                                                                          |
+| **6**  | Government Schemes   | ⏳ Planned      | Scheme hub, eligibility checker                                                                                                                                                                    |
+| **7**  | Agri News            | ⏳ Planned      | News feed, alerts, categorization                                                                                                                                                                  |
+| **8**  | AI Assistant         | ⏳ Planned      | LangChain RAG, multi-turn chat                                                                                                                                                                     |
+| **9**  | ML Pipeline          | ⏳ Planned      | Training, MLflow, DagsHub, experimentation                                                                                                                                                         |
+| **10** | CI/CD & Deploy       | ⏳ Planned      | GitHub Actions, automated testing                                                                                                                                                                  |
 
 ### Phase Details
 
 Each phase includes:
+
 - ✅ Architecture decisions explained
 - ✅ Folder structure organized
 - ✅ Production-grade code
@@ -677,7 +680,7 @@ AgriKart
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
 │  Next.js Front  │────→│  Express Back   │────→│  Supabase DB   │
-│   (Port 3000)   │     │  (Port 4000)    │     │                │
+│   (Port 3000)   │     │  (Port 3001)    │     │                │
 └─────────────────┘     └─────────────────┘     └─────────────────┘
                                ↓
                     ┌──────────────────────┐
@@ -744,6 +747,7 @@ AgriKart
 We welcome contributions across all domains!
 
 **Areas Needing Help:**
+
 - Database schema optimization
 - Frontend component design system
 - ML model development
@@ -764,16 +768,16 @@ For detailed guidelines, see [CONTRIBUTION.md](docs/CONTRIBUTION.md).
 
 ## 📊 Project Status
 
-| Component | Status | Notes |
-|-----------|--------|-------|
-| Project Architecture | ✅ Complete | Phase 1 documentation |
-| Backend Structure | ⏳ In Progress | Express setup starting Phase 3 |
-| Frontend Structure | ⏳ In Progress | Next.js pages starting Phase 4 |
-| Database Schema | ⏳ Planned | Phase 2 detailed design |
-| ML Service | ⏳ Planned | Phase 9 implementation |
-| LLM Service | ⏳ Planned | Phase 8 implementation |
-| CI/CD Pipelines | ⏳ Planned | Phase 10 automation |
-| Deployment | ⏳ Planned | Phase 10 setup |
+| Component            | Status         | Notes                          |
+| -------------------- | -------------- | ------------------------------ |
+| Project Architecture | ✅ Complete    | Phase 1 documentation          |
+| Backend Structure    | ⏳ In Progress | Express setup starting Phase 3 |
+| Frontend Structure   | ⏳ In Progress | Next.js pages starting Phase 4 |
+| Database Schema      | ⏳ Planned     | Phase 2 detailed design        |
+| ML Service           | ⏳ Planned     | Phase 9 implementation         |
+| LLM Service          | ⏳ Planned     | Phase 8 implementation         |
+| CI/CD Pipelines      | ⏳ Planned     | Phase 10 automation            |
+| Deployment           | ⏳ Planned     | Phase 10 setup                 |
 
 ---
 
@@ -812,6 +816,7 @@ This project is open source and available under the MIT License. See [LICENSE](L
 Built with ❤️ for Indian farmers and sustainable agriculture.
 
 **Technology Partners:**
+
 - [Supabase](https://supabase.com) — Database & Auth
 - [Next.js](https://nextjs.org) — Frontend
 - [FastAPI](https://fastapi.tiangolo.com) — ML & LLM services
@@ -819,6 +824,7 @@ Built with ❤️ for Indian farmers and sustainable agriculture.
 - [PyTorch](https://pytorch.org) — ML framework
 
 **Inspiration:**
+
 - Farmer-first design thinking
 - Open source philosophy
 - Sustainable agriculture

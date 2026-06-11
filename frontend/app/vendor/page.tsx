@@ -10,12 +10,15 @@ export default function VendorPage() {
   const router = useRouter()
 
   useEffect(() => {
-    if (!loading && (!user || user.role !== 'vendor')) {
+    if (!loading && !user) {
       router.push('/auth/login')
+    } else if (!loading && user && user.role !== 'vendor') {
+      router.push('/products')
     }
   }, [user, loading, router])
 
   if (loading) return <div className="text-center py-20">Loading...</div>
+  if (!user || user.role !== 'vendor') return null
 
   return <VendorDashboard />
 }

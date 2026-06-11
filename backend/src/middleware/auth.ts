@@ -11,6 +11,7 @@ import {
   ErrorCode,
 } from '../utils/errors'
 import { roleService } from '../services/auth/roleService'
+import { createSupabaseAdminClient } from '../config/supabase'
 
 /**
  * Extend Express Request to include auth context
@@ -31,11 +32,11 @@ declare global {
  * 1. Authorization header: Bearer <token>
  * 2. HttpOnly cookie: sb-auth-token
  */
-export function authMiddleware(
+export async function authMiddleware(
   req: Request,
   res: Response,
   next: NextFunction
-): void {
+): Promise<void> {
   try {
     // Extract JWT from Authorization header or cookies
     let token: string | null = null
@@ -62,13 +63,14 @@ export function authMiddleware(
     // In production, use Supabase.auth.getUser(token) or
     // a proper JWT verification library with RS256 keys
     const decoded = verifyJWT(token)
+    const profile = await getApplicationProfile(decoded.sub || decoded.user_id, decoded.email)
 
     // Attach auth context to request
     req.auth = {
       userId: decoded.sub || decoded.user_id,
-      email: decoded.email,
-      role: (decoded.role || 'farmer') as UserRole,
-      emailVerified: decoded.email_verified || false,
+      email: profile?.email || decoded.email,
+      role: (profile?.role || decoded.user_metadata?.role || decoded.app_metadata?.role || 'farmer') as UserRole,
+      emailVerified: profile?.email_verified ?? profile?.verified ?? decoded.email_verified ?? false,
       phoneVerified: decoded.phone_verified || false,
     }
 
@@ -92,11 +94,11 @@ export function authMiddleware(
  * Optional authentication middleware
  * Does not throw if token is missing, but validates if present
  */
-export function optionalAuthMiddleware(
+export async function optionalAuthMiddleware(
   req: Request,
   res: Response,
   next: NextFunction
-): void {
+): Promise<void> {
   try {
     // Extract JWT
     let token: string | null = null
@@ -113,11 +115,12 @@ export function optionalAuthMiddleware(
     // If token exists, verify it
     if (token) {
       const decoded = verifyJWT(token)
+      const profile = await getApplicationProfile(decoded.sub || decoded.user_id, decoded.email)
       req.auth = {
         userId: decoded.sub || decoded.user_id,
-        email: decoded.email,
-        role: (decoded.role || 'farmer') as UserRole,
-        emailVerified: decoded.email_verified || false,
+        email: profile?.email || decoded.email,
+        role: (profile?.role || decoded.user_metadata?.role || decoded.app_metadata?.role || 'farmer') as UserRole,
+        emailVerified: profile?.email_verified ?? profile?.verified ?? decoded.email_verified ?? false,
         phoneVerified: decoded.phone_verified || false,
       }
     }
@@ -264,6 +267,28 @@ function verifyJWT(token: string): any {
       ErrorCode.INVALID_TOKEN
     )
   }
+}
+
+async function getApplicationProfile(userId?: string, email?: string): Promise<any | null> {
+  if (!userId && !email) return null
+
+  const supabase = createSupabaseAdminClient()
+  const selectors = [
+    { table: 'profiles', column: userId ? 'id' : 'email', value: userId || email },
+    { table: 'users', column: userId ? 'id' : 'email', value: userId || email },
+  ]
+
+  for (const selector of selectors) {
+    const { data, error } = await supabase
+      .from(selector.table)
+      .select('*')
+      .eq(selector.column, selector.value)
+      .maybeSingle()
+
+    if (!error && data) return data
+  }
+
+  return null
 }
 
 /**

@@ -6,6 +6,7 @@
 import { Router, Request, Response, NextFunction } from 'express'
 import { authService } from '../services/auth/authService'
 import { authMiddleware, requireEmailVerified } from '../middleware/auth'
+import { emailService } from '../services/email/emailService'
 import type { AuthResponse, LoginRequest, SignUpRequest } from '../types/auth'
 import { AppError } from '../utils/errors'
 
@@ -76,6 +77,77 @@ router.post('/logout', authMiddleware, (req: Request, res: Response) => {
 })
 
 /**
+ * POST /auth/send-otp
+ * Sends an OTP to the user's email
+ */
+router.post(
+  '/send-otp',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { email } = req.body
+
+      if (!email) {
+        return res.status(400).json({
+          error: {
+            message: 'Email is required',
+            code: 'MISSING_EMAIL',
+          },
+        })
+      }
+
+      await emailService.sendOTP(email)
+
+      res.status(200).json({
+        success: true,
+        message: 'OTP sent successfully',
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
+/**
+ * POST /auth/verify-otp
+ * Verifies the OTP sent to the user's email
+ */
+router.post(
+  '/verify-otp',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { email, otp } = req.body
+
+      if (!email || !otp) {
+        return res.status(400).json({
+          error: {
+            message: 'Email and OTP are required',
+            code: 'MISSING_FIELDS',
+          },
+        })
+      }
+
+      const isValid = await emailService.verifyOTP(email, otp)
+
+      if (!isValid) {
+        return res.status(400).json({
+          error: {
+            message: 'Invalid or expired OTP',
+            code: 'INVALID_OTP',
+          },
+        })
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'OTP verified successfully',
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
+/**
  * POST /auth/forgot-password
  * Initiates password reset flow
  */
@@ -94,8 +166,13 @@ router.post(
         })
       }
 
-      const result = await authService.requestPasswordReset(email)
-      res.status(200).json(result)
+      // Instead of relying on Supabase auth reset email, we use our custom OTP
+      await emailService.sendOTP(email)
+      
+      res.status(200).json({
+        success: true,
+        message: 'Password reset OTP sent'
+      })
     } catch (error) {
       next(error)
     }
@@ -104,29 +181,68 @@ router.post(
 
 /**
  * POST /auth/reset-password
- * Confirms password reset with token
+ * Confirms password reset with OTP and new password
  */
 router.post(
   '/reset-password',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { token, newPassword } = req.body
+      const { email, otp, newPassword } = req.body
 
-      if (!token || !newPassword) {
+      if (!email || !otp || !newPassword) {
         return res.status(400).json({
           error: {
-            message: 'Token and new password are required',
+            message: 'Email, OTP, and new password are required',
             code: 'MISSING_FIELDS',
           },
         })
       }
 
-      const result = await authService.confirmPasswordReset(
-        token,
-        newPassword
+      const isValid = await emailService.verifyOTP(email, otp)
+      
+      if (!isValid) {
+        return res.status(400).json({
+          error: {
+            message: 'Invalid or expired OTP',
+            code: 'INVALID_OTP',
+          },
+        })
+      }
+
+      // Update password via authService. We need admin rights or similar for this if we don't have token.
+      // But authService.confirmPasswordReset expects a token.
+      // Actually, since we're verifying the OTP manually, we should use supabase admin to change password.
+      const { getSupabaseAdminClient } = await import('../config/supabase')
+      const supabaseAdmin = getSupabaseAdminClient()
+      
+      const { data: userData, error: userError } = await supabaseAdmin
+        .from('users')
+        .select('id')
+        .eq('email', email)
+        .single()
+        
+      if (userError || !userData) {
+         return res.status(404).json({
+          error: {
+            message: 'User not found',
+            code: 'USER_NOT_FOUND',
+          },
+        })
+      }
+
+      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+        userData.id,
+        { password: newPassword }
       )
 
-      res.status(200).json(result)
+      if (updateError) throw updateError
+
+      await emailService.clearOTP(email)
+
+      res.status(200).json({
+        success: true,
+        message: 'Password updated successfully'
+      })
     } catch (error) {
       next(error)
     }

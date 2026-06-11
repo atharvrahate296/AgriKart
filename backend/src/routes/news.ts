@@ -30,8 +30,8 @@ router.get(
       const filters = validateArticleFilters(req.query);
 
       // Farmers and public guests can ONLY view published articles.
-      // Admin and experts can view drafts.
-      if (!req.auth || !['expert', 'admin'].includes(req.auth.role)) {
+      // Admin, experts, and vendors can view drafts from editorial tooling.
+      if (!req.auth || !['expert', 'admin', 'vendor'].includes(req.auth.role)) {
         filters.isPublished = true;
       }
 
@@ -78,12 +78,12 @@ router.get(
 
 /**
  * POST /api/news/articles
- * Create a new article (Admin/Expert only)
+ * Create a new article (Admin/Expert/Vendor only)
  */
 router.post(
   '/articles',
   authMiddleware,
-  requireRole('expert', 'admin'),
+  requireRole('expert', 'admin', 'vendor'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (!req.auth) throw new AuthenticationError('Authentication required');
@@ -104,12 +104,12 @@ router.post(
 
 /**
  * PUT /api/news/articles/:id
- * Modifies an existing article (Admin/Expert only)
+ * Modifies an existing article (Admin/Expert/Vendor only)
  */
 router.put(
   '/articles/:id',
   authMiddleware,
-  requireRole('expert', 'admin'),
+  requireRole('expert', 'admin', 'vendor'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (!req.auth) throw new AuthenticationError('Authentication required');

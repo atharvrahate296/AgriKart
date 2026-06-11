@@ -9,7 +9,7 @@ export default function ProductsPage() {
   const [filters, setFilters] = useState({
     search: '',
     category: '',
-    priceRange: [0, 10000],
+    priceRange: [0, 50000],
     sortBy: 'newest',
     inStock: true,
   })
