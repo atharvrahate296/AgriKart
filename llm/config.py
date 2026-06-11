@@ -8,7 +8,7 @@ class Settings:
     PROJECT_NAME: str = "AgriKart-LLM-Service"
     ENV: str = os.getenv("LLM_ENV", "development")
     PORT: int = int(os.getenv("LLM_PORT", "8001"))
-    HOST: str = os.getenv("LLM_HOST", "0.0.0.0")
+    HOST: str = os.getenv("LLM_HOST", "localhost")
     
     # LLM Provider Configuration
     LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "gemini")

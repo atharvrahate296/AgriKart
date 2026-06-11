@@ -144,25 +144,51 @@ export async function createProduct(
     }
 
     const supabase = createSupabaseAdminClient();
+    const sku = input.sku || `PRD-${Date.now()}`;
+    const category = (input as any).category || 'General';
 
-    const { data, error } = await supabase
+    const richPayload = {
+      vendor_id: vendorId,
+      category_id: input.category_id,
+      category,
+      name: input.name,
+      description: input.description,
+      price: input.price,
+      quantity_in_stock: input.quantity_in_stock,
+      stock_quantity: input.quantity_in_stock,
+      sku,
+      image_url: input.image_url || null,
+      image: input.image_url || null,
+      tags: input.tags || [],
+      is_active: true,
+    };
+
+    let { data, error } = await supabase
       .from('products')
-      .insert([
-        {
-          vendor_id: vendorId,
-          category_id: input.category_id,
-          name: input.name,
-          description: input.description,
-          price: input.price,
-          quantity_in_stock: input.quantity_in_stock,
-          sku: input.sku,
-          image_url: input.image_url,
-          tags: input.tags || [],
-          is_active: true,
-        },
-      ])
+      .insert([richPayload])
       .select()
       .single();
+
+    if (error) {
+      const fallback = await supabase
+        .from('products')
+        .insert([
+          {
+            vendor_id: vendorId,
+            name: input.name,
+            description: input.description,
+            category,
+            price: input.price,
+            stock_quantity: input.quantity_in_stock,
+            image: input.image_url || null,
+          },
+        ])
+        .select()
+        .single();
+
+      data = fallback.data;
+      error = fallback.error;
+    }
 
     if (error || !data) {
       throw new DatabaseError(`Failed to create product: ${error?.message}`);

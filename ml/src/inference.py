@@ -4,6 +4,7 @@ import torch.nn as nn
 import numpy as np
 from PIL import Image
 import io
+from torchvision import models
 
 from config import settings
 from src.preprocessing import preprocess_image_bytes
@@ -53,16 +54,17 @@ class DiseaseModelWrapper:
         model_path = settings.model_path
         if os.path.exists(model_path):
             try:
-                # In production, load the trained weights
-                # e.g., self.model = torch.load(model_path, map_location=torch.device('cpu'))
-                # For this setup, we will define a simple architecture placeholders
                 checkpoint = torch.load(model_path, map_location=torch.device('cpu'))
                 
                 # Check if it's a full model or state_dict
                 if isinstance(checkpoint, dict) and "state_dict" in checkpoint:
-                    # Initialize your architecture here
-                    # self.model.load_state_dict(checkpoint["state_dict"])
-                    pass
+                    self.classes = checkpoint.get("class_names", [])
+                    num_classes = checkpoint.get("num_classes", len(self.classes))
+                    
+                    self.model = models.mobilenet_v3_small(pretrained=False)
+                    num_ftrs = self.model.classifier[3].in_features
+                    self.model.classifier[3] = nn.Linear(num_ftrs, num_classes)
+                    self.model.load_state_dict(checkpoint["state_dict"])
                 else:
                     self.model = checkpoint
                     
@@ -126,12 +128,11 @@ class DiseaseModelWrapper:
                     probabilities = torch.softmax(outputs, dim=1)
                     confidence, preds = torch.max(probabilities, dim=1)
                     
-                # Class mapping lookup (in production, loaded from labels.json)
+                # Class mapping lookup
                 class_idx = int(preds.item())
                 confidence_score = float(confidence.item())
                 
-                # Mock class lookup for real model mapping demonstration
-                predicted_name = f"Class_{class_idx}"
+                predicted_name = self.classes[class_idx] if self.classes and class_idx < len(self.classes) else f"Class_{class_idx}"
                 return {
                     "crop_type": crop_type_hint or "unknown",
                     "predicted_disease": predicted_name,

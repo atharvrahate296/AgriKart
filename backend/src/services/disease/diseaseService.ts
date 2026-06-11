@@ -112,8 +112,20 @@ export async function predictDisease(
       throw new DatabaseError(`Failed to save prediction record: ${insertError?.message}`);
     }
 
+    // 6. Cleanup: Delete the temporary image from Supabase storage to free space
+    try {
+      await supabase.storage
+        .from('disease-images')
+        .remove([storagePath]);
+      console.log(`Cleaned up temp image: ${storagePath}`);
+    } catch (cleanupErr: any) {
+      // Don't block the response if cleanup fails — just log
+      console.warn(`Failed to cleanup temp image ${storagePath}: ${cleanupErr.message}`);
+    }
+
     return {
       ...predictionRecord,
+      image_url: null, // Image was temporary and has been deleted
       disease_details: disease || {
         name: predictionResult.predicted_disease,
         scientific_name: predictionResult.scientific_name,

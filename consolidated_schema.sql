@@ -1,8 +1,7 @@
 -- =====================================================================
---                   AGRIKART 2.0 MASTER SCHEMA SETUP
+--                   AGRIKART 2.0 CONSOLIDATED SCHEMA
 -- =====================================================================
--- Paste this entire script into your Supabase Dashboard SQL Editor and Run.
--- This creates all tables for both the core marketplace and premium modules.
+-- Create the schema design for the entire AgriKart Website
 
 -- DROP existing tables to ensure clean schema recreation
 DROP TABLE IF EXISTS public.prediction_feedback CASCADE;
@@ -16,8 +15,8 @@ DROP TABLE IF EXISTS public.articles CASCADE;
 DROP TABLE IF EXISTS public.alerts CASCADE;
 DROP TABLE IF EXISTS public.reviews CASCADE;
 DROP TABLE IF EXISTS public.products CASCADE;
+DROP TABLE IF EXISTS public.categories CASCADE;
 DROP TABLE IF EXISTS public.vendors CASCADE;
-DROP TABLE IF EXISTS public.messages CASCADE;
 DROP TABLE IF EXISTS public.orders CASCADE;
 DROP TABLE IF EXISTS public.users CASCADE;
 DROP TABLE IF EXISTS public.profiles CASCADE;
@@ -25,7 +24,7 @@ DROP TABLE IF EXISTS public.profiles CASCADE;
 
 -- 1. Profiles Table (Main backend user metadata table)
 CREATE TABLE IF NOT EXISTS public.profiles (
-  id UUID PRIMARY KEY, -- References auth.users(id)
+  id UUID PRIMARY KEY,
   email VARCHAR(255) UNIQUE NOT NULL,
   full_name VARCHAR(255) NOT NULL,
   phone VARCHAR(20),
@@ -54,50 +53,101 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 
 -- 2. Users Table (Frontend alignment table - mirrored to profiles)
 CREATE TABLE IF NOT EXISTS public.users (
-  id UUID PRIMARY KEY, -- References auth.users(id)
+  id UUID PRIMARY KEY,
   email VARCHAR(255) UNIQUE NOT NULL,
   full_name VARCHAR(255) NOT NULL,
   phone VARCHAR(20),
   role VARCHAR(20) NOT NULL CHECK (role IN ('farmer', 'vendor', 'expert', 'admin')),
   verified BOOLEAN DEFAULT FALSE,
+  location VARCHAR(255),
+  bio TEXT,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
--- 3. Vendors Table (Vendor business metadata, linked 1:1 to profiles)
+-- 3. Vendors Table (Rich vendor business profile)
 CREATE TABLE IF NOT EXISTS public.vendors (
   id UUID PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
+  user_id UUID UNIQUE, -- Link to profiles.id
   company_name VARCHAR(255) NOT NULL,
-  location VARCHAR(255),
-  phone_business VARCHAR(20),
+  business_name VARCHAR(255),
+  business_description TEXT,
+  owner_name VARCHAR(255),
+  business_type VARCHAR(100),
+  registration_number VARCHAR(100),
+  gst_number VARCHAR(30),
+  pan_number VARCHAR(30),
+  business_phone VARCHAR(20),
+  business_email VARCHAR(255),
+  business_address TEXT,
+  city VARCHAR(100),
+  state VARCHAR(100),
+  pincode VARCHAR(20),
+  website_url VARCHAR(500),
+  years_in_business INT,
+  service_areas TEXT[] DEFAULT '{}'::text[],
+  support_contact VARCHAR(100),
+  avatar_url VARCHAR(500),
+  banner_url VARCHAR(500),
   rating DECIMAL(3,2) DEFAULT 0,
   reviews_count INT DEFAULT 0,
-  verified_badge BOOLEAN DEFAULT FALSE,
-  description TEXT,
-  created_at TIMESTAMP DEFAULT NOW()
+  average_rating DECIMAL(3,2) DEFAULT 0,
+  total_reviews INT DEFAULT 0,
+  total_orders INT DEFAULT 0,
+  total_revenue DECIMAL(12,2) DEFAULT 0,
+  commission_rate DECIMAL(5,2) DEFAULT 5.00,
+  is_verified BOOLEAN DEFAULT FALSE,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
 );
 
--- 4. Products Table (Marketplace Catalog)
+-- 4. Categories Table
+CREATE TABLE IF NOT EXISTS public.categories (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name VARCHAR(120) NOT NULL UNIQUE,
+  slug VARCHAR(140) NOT NULL UNIQUE,
+  description TEXT,
+  image_url VARCHAR(500),
+  parent_category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL,
+  is_active BOOLEAN DEFAULT TRUE,
+  product_count INT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- 5. Products Table (Marketplace Catalog)
 CREATE TABLE IF NOT EXISTS public.products (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   vendor_id UUID NOT NULL REFERENCES public.vendors(id) ON DELETE CASCADE,
+  category_id UUID REFERENCES public.categories(id),
   name VARCHAR(255) NOT NULL,
   description TEXT,
   category VARCHAR(100) NOT NULL,
   price DECIMAL(10,2) NOT NULL,
   original_price DECIMAL(10,2),
   stock_quantity INT DEFAULT 0,
+  quantity_in_stock INT DEFAULT 0,
   image VARCHAR(500),
+  image_url VARCHAR(500),
   additional_images JSONB DEFAULT '[]'::jsonb,
   specifications JSONB DEFAULT '{}'::jsonb,
+  tags TEXT[] DEFAULT '{}'::text[],
+  sku VARCHAR(80),
   rating DECIMAL(3,2) DEFAULT 0,
-  created_at TIMESTAMP DEFAULT NOW()
+  average_rating DECIMAL(3,2) DEFAULT 0,
+  total_reviews INT DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_products_vendor ON public.products(vendor_id);
 CREATE INDEX IF NOT EXISTS idx_products_category ON public.products(category);
+CREATE INDEX IF NOT EXISTS idx_products_category_id ON public.products(category_id);
+CREATE INDEX IF NOT EXISTS idx_products_active_created ON public.products(is_active, created_at DESC);
 
--- 5. Reviews Table (Product Reviews)
+-- 6. Reviews Table
 CREATE TABLE IF NOT EXISTS public.reviews (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   product_id UUID NOT NULL REFERENCES public.products(id) ON DELETE CASCADE,
@@ -107,7 +157,7 @@ CREATE TABLE IF NOT EXISTS public.reviews (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
--- 6. Orders Table (E-commerce Orders)
+-- 7. Orders Table
 CREATE TABLE IF NOT EXISTS public.orders (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES public.profiles(id),
@@ -118,7 +168,7 @@ CREATE TABLE IF NOT EXISTS public.orders (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
--- 7. Messages Table (Peer-to-Peer Chat messages)
+-- 8. Messages Table
 CREATE TABLE IF NOT EXISTS public.messages (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   sender_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -129,9 +179,7 @@ CREATE TABLE IF NOT EXISTS public.messages (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_messages_receiver ON public.messages(receiver_id);
-
--- 8. Diseases Table (ML Disease Reference Catalog)
+-- 9. Diseases Table
 CREATE TABLE IF NOT EXISTS public.diseases (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name VARCHAR(255) UNIQUE NOT NULL,
@@ -144,7 +192,7 @@ CREATE TABLE IF NOT EXISTS public.diseases (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
--- 9. Disease Predictions Table (User classification logs)
+-- 10. Disease Predictions Table
 CREATE TABLE IF NOT EXISTS public.disease_predictions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   farmer_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -163,7 +211,7 @@ CREATE TABLE IF NOT EXISTS public.disease_predictions (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
--- 10. Prediction Feedback Table (User feedback loops for model retraining)
+-- 11. Prediction Feedback Table
 CREATE TABLE IF NOT EXISTS public.prediction_feedback (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   prediction_id UUID NOT NULL REFERENCES public.disease_predictions(id) ON DELETE CASCADE,
@@ -177,7 +225,7 @@ CREATE TABLE IF NOT EXISTS public.prediction_feedback (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
--- 11. Schemes Table (Government Subsidies Directory)
+-- 12. Schemes Table
 CREATE TABLE IF NOT EXISTS public.schemes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name VARCHAR(255) NOT NULL,
@@ -206,7 +254,7 @@ CREATE TABLE IF NOT EXISTS public.schemes (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
--- 12. Scheme Applications Table (Subsidy application records)
+-- 13. Scheme Applications Table
 CREATE TABLE IF NOT EXISTS public.scheme_applications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   scheme_id UUID NOT NULL REFERENCES public.schemes(id) ON DELETE CASCADE,
@@ -226,7 +274,7 @@ CREATE TABLE IF NOT EXISTS public.scheme_applications (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
--- 13. Articles Table (Agri News Desk)
+-- 14. Articles Table
 CREATE TABLE IF NOT EXISTS public.articles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title VARCHAR(255) NOT NULL,
@@ -245,12 +293,13 @@ CREATE TABLE IF NOT EXISTS public.articles (
   published_at TIMESTAMP,
   view_count INT DEFAULT 0,
   share_count INT DEFAULT 0,
+  vendor_id UUID REFERENCES public.vendors(id) ON DELETE SET NULL,
   metadata JSONB DEFAULT '{}'::jsonb,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
--- 14. Alerts Table (Pest outbreaks and Weather warnings)
+-- 15. Alerts Table
 CREATE TABLE IF NOT EXISTS public.alerts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   type VARCHAR(100) NOT NULL,
@@ -269,7 +318,7 @@ CREATE TABLE IF NOT EXISTS public.alerts (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
--- 15. Chat Sessions Table (AI Conversations)
+-- 16. Chat Sessions Table
 CREATE TABLE IF NOT EXISTS public.chat_sessions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   farmer_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -283,7 +332,7 @@ CREATE TABLE IF NOT EXISTS public.chat_sessions (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
--- 16. Chat Messages Table (AI Chat feeds)
+-- 17. Chat Messages Table
 CREATE TABLE IF NOT EXISTS public.chat_messages (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   session_id UUID NOT NULL REFERENCES public.chat_sessions(id) ON DELETE CASCADE,
@@ -300,7 +349,6 @@ CREATE TABLE IF NOT EXISTS public.chat_messages (
 --                       TRIGGERS & FUNCTIONS
 -- =====================================================================
 
--- Auto-sync Supabase Auth users to public.profiles and public.users on sign up
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
@@ -327,7 +375,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Bind the sync trigger
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
@@ -336,11 +383,10 @@ CREATE TRIGGER on_auth_user_created
 -- =====================================================================
 --                   DISABLE ROW LEVEL SECURITY (RLS)
 -- =====================================================================
--- Allows testing suites and seed scripts to query DB without auth limits
-
 ALTER TABLE public.profiles DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.users DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.vendors DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.categories DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.products DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reviews DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.orders DISABLE ROW LEVEL SECURITY;

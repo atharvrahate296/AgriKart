@@ -167,7 +167,7 @@ export default function SearchAndFilters({ filters, setFilters }: any) {
               setFilters({
                 search: '',
                 category: '',
-                priceRange: [0, 10000],
+                priceRange: [0, 50000],
                 sortBy: 'newest',
                 inStock: true,
               })

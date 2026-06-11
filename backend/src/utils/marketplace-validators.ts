@@ -8,8 +8,9 @@ import { z } from 'zod';
 /**
  * Product creation schema
  */
-export const createProductSchema = z.object({
-  category_id: z.string().uuid('Invalid category ID'),
+const productPayloadSchema = z.object({
+  category_id: z.string().uuid('Invalid category ID').optional(),
+  category: z.string().min(2).max(100).optional(),
   name: z.string()
     .min(3, 'Product name must be at least 3 characters')
     .max(200, 'Product name must be at most 200 characters'),
@@ -25,9 +26,15 @@ export const createProductSchema = z.object({
   sku: z.string()
     .min(3, 'SKU must be at least 3 characters')
     .max(50, 'SKU must be at most 50 characters')
-    .regex(/^[A-Z0-9\-]+$/, 'SKU must contain only uppercase letters, numbers, and hyphens'),
-  image_url: z.string().url('Invalid image URL'),
+    .regex(/^[A-Z0-9\-]+$/, 'SKU must contain only uppercase letters, numbers, and hyphens')
+    .optional(),
+  image_url: z.string().url('Invalid image URL').optional().or(z.literal('')),
   tags: z.array(z.string().min(2).max(50)).max(10, 'Maximum 10 tags allowed').default([]),
+});
+
+export const createProductSchema = productPayloadSchema.refine((data) => data.category_id || data.category, {
+  message: 'Either category_id or category is required',
+  path: ['category'],
 });
 
 export type CreateProductInput = z.infer<typeof createProductSchema>;
@@ -35,7 +42,7 @@ export type CreateProductInput = z.infer<typeof createProductSchema>;
 /**
  * Product update schema (all fields optional)
  */
-export const updateProductSchema = createProductSchema.partial();
+export const updateProductSchema = productPayloadSchema.partial();
 
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 
@@ -181,8 +188,23 @@ export const vendorProfileUpdateSchema = z.object({
     .optional(),
   business_description: z.string()
     .min(10, 'Description must be at least 10 characters')
-    .max(1000, 'Description must be at most 1000 characters')
+    .max(2000, 'Description must be at most 2000 characters')
     .optional(),
+  owner_name: z.string().min(2).max(150).optional(),
+  business_type: z.string().max(100).optional(),
+  registration_number: z.string().max(100).optional(),
+  gst_number: z.string().max(30).optional(),
+  pan_number: z.string().max(30).optional(),
+  business_phone: z.string().max(20).optional(),
+  business_email: z.string().email('Invalid business email').optional().or(z.literal('')),
+  business_address: z.string().max(1000).optional(),
+  city: z.string().max(100).optional(),
+  state: z.string().max(100).optional(),
+  pincode: z.string().max(20).optional(),
+  website_url: z.string().url('Invalid website URL').optional().or(z.literal('')),
+  years_in_business: z.number().int().min(0).max(200).optional(),
+  service_areas: z.array(z.string().min(1).max(100)).max(50).optional(),
+  support_contact: z.string().max(100).optional(),
   avatar_url: z.string().url('Invalid avatar URL').optional(),
   banner_url: z.string().url('Invalid banner URL').optional(),
 });

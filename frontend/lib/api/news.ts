@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
 async function getHeaders() {
   const session = (await supabase.auth.getSession()).data.session
