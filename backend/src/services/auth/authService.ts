@@ -13,9 +13,11 @@ import {
   resetPassword,
   verifyEmail,
   getSupabaseAdminClient,
+  getSupabaseAnonClient,
 } from '../../config/supabase'
 import {
   AuthenticationError,
+  ValidationError,
   ConflictError,
   NotFoundError,
   ErrorCode,
@@ -35,37 +37,56 @@ export async function login(
   // Validate input
   const validation = loginSchema.safeParse(credentials)
   if (!validation.success) {
-    throw new AuthenticationError(
-      'Invalid email or password',
-      ErrorCode.INVALID_CREDENTIALS,
-      {
-        details: validation.error.errors,
-      }
-    )
-  }
-
-  const { email, password } = validation.data
-
-  // Check if user exists in profiles table
-  const existingUser = await getUserByEmail(email)
-  if (!existingUser) {
-    throw new AuthenticationError(
+    throw new ValidationError(
       'Invalid email or password',
       ErrorCode.INVALID_CREDENTIALS
     )
   }
 
-  // Supabase Auth handles password verification via JWT
-  // Frontend will use Supabase Auth SDK to get JWT token
-  // This endpoint assumes JWT is already validated by middleware
-  
+  const { email, password } = validation.data
+
+  // Authenticate credentials via Supabase Auth
+  const client = getSupabaseAnonClient()
+  let { data: authData, error: authError } = await client.auth.signInWithPassword({
+    email,
+    password,
+  })
+
+  // If email is unconfirmed, auto-confirm user via Admin API and retry login
+  if (authError && authError.message.toLowerCase().includes('email not confirmed')) {
+    try {
+      const admin = getSupabaseAdminClient()
+      const existingUser = await getUserByEmail(email)
+      if (existingUser?.id) {
+        await admin.auth.admin.updateUserById(existingUser.id, { email_confirm: true })
+        // Retry login after auto-confirm
+        const retry = await client.auth.signInWithPassword({ email, password })
+        authData = retry.data
+        authError = retry.error
+      }
+    } catch (autoConfirmErr) {
+      console.error('[authService] Auto-confirm email failed:', autoConfirmErr)
+    }
+  }
+
+  if (authError || !authData.user || !authData.session) {
+    throw new AuthenticationError(
+      authError?.message || 'Invalid email or password',
+      ErrorCode.INVALID_CREDENTIALS
+    )
+  }
+
+  const existingUser = await getUserByEmail(email)
+
   return {
     success: true,
     message: 'Login successful',
+    token: authData.session.access_token,
     user: {
-      id: existingUser.id,
-      email: existingUser.email,
-      role: existingUser.role,
+      id: authData.user.id,
+      email: authData.user.email || email,
+      full_name: existingUser?.full_name || authData.user.user_metadata?.full_name || 'User',
+      role: existingUser?.role || authData.user.user_metadata?.role || 'farmer',
     },
   }
 }
@@ -79,7 +100,7 @@ export async function signup(
   // Validate input
   const validation = signUpSchema.safeParse(signupData)
   if (!validation.success) {
-    throw new AuthenticationError(
+    throw new ValidationError(
       'Validation failed',
       ErrorCode.VALIDATION_ERROR,
       {
@@ -97,53 +118,74 @@ export async function signup(
     location,
   } = validation.data
 
-  // Check if user already exists
+  // Check if user already exists in profiles
   const existingUser = await getUserByEmail(email)
+  let userId: string = ''
+
   if (existingUser) {
-    throw new ConflictError(
-      'Email address is already registered',
-      {
-        field: 'email',
-      }
-    )
+    const admin = getSupabaseAdminClient()
+    const { data: usersData } = await admin.auth.admin.listUsers()
+    const existingAuthUser = usersData?.users?.find(u => u.email?.toLowerCase() === email.toLowerCase())
+    if (existingAuthUser) {
+      await admin.auth.admin.updateUserById(existingAuthUser.id, {
+        password,
+        email_confirm: true,
+        user_metadata: { full_name: fullName, role }
+      })
+      userId = existingAuthUser.id
+    }
   }
 
-  // Create auth user in Supabase Auth (password is hashed by Supabase)
-  let userId: string
-  try {
-    const result = await createAuthUser(email, password)
-    userId = result.userId
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('already')) {
-      throw new ConflictError('Email address is already registered')
+  if (!userId) {
+    try {
+      const admin = getSupabaseAdminClient()
+      const { data: userData, error: createError } = await admin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: {
+          full_name: fullName,
+          role: role,
+        }
+      })
+
+      if (createError || !userData?.user) {
+        throw new Error(createError?.message || 'Failed to create user account')
+      }
+
+      userId = userData.user.id
+    } catch (error) {
+      if (error instanceof Error && (error.message.includes('already') || error.message.includes('registered') || error.message.includes('exists'))) {
+        const admin = getSupabaseAdminClient()
+        const { data: usersData } = await admin.auth.admin.listUsers()
+        const existingAuthUser = usersData?.users?.find(u => u.email?.toLowerCase() === email.toLowerCase())
+        if (existingAuthUser) {
+          await admin.auth.admin.updateUserById(existingAuthUser.id, {
+            password,
+            email_confirm: true,
+            user_metadata: { full_name: fullName, role }
+          })
+          userId = existingAuthUser.id
+        } else {
+          throw new ConflictError('Email address is already registered')
+        }
+      } else {
+        throw error
+      }
     }
-    throw error
   }
 
   // Create user profile in profiles table
   const supabase = getSupabaseAdminClient()
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .insert({
+    .upsert({
       id: userId,
       email,
       full_name: fullName,
       phone: phone || null,
       role,
-      language: 'en',
-      location: location || null,
-      email_verified: false,
-      phone_verified: false,
-      verification_status: 'pending',
-      notification_preferences: {
-        emailNotifications: true,
-        pushNotifications: true,
-        smsNotifications: false,
-        newsletterSubscribed: false,
-        schemeAlerts: true,
-        diseaseAlerts: true,
-        orderUpdates: true,
-      },
+      location: typeof location === 'string' ? location : (location ? `${location.district || ''}, ${location.state || ''}` : null),
     })
     .select()
     .single()
@@ -160,9 +202,47 @@ export async function signup(
     throw new Error(`Failed to create user profile: ${profileError.message}`)
   }
 
+  // Create user record in users table
+  const { error: usersError } = await supabase
+    .from('users')
+    .upsert({
+      id: userId,
+      email,
+      full_name: fullName,
+      phone: phone || null,
+      role,
+      verified: false,
+      location: location || null,
+    })
+
+  if (usersError) {
+    console.error('Failed to create users record:', usersError)
+  }
+
+  // Create vendor profile if user is a vendor
+  if (role === 'vendor') {
+    const businessName = `${fullName}'s Business`
+    const { error: vendorError } = await supabase
+      .from('vendors')
+      .upsert({
+        id: userId,
+        user_id: userId,
+        company_name: businessName,
+        business_name: businessName,
+        owner_name: fullName,
+        business_phone: phone || null,
+        business_description: 'New vendor profile',
+        is_active: true,
+      })
+
+    if (vendorError) {
+      console.error('Failed to create vendor profile:', vendorError)
+    }
+  }
+
   return {
     success: true,
-    message: 'Account created successfully. Please verify your email.',
+    message: 'Account created successfully.',
     user: {
       id: userId,
       email,

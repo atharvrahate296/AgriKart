@@ -7,7 +7,7 @@ export interface UserProfile {
   email: string
   full_name: string
   phone: string
-  role: 'farmer' | 'vendor' | 'expert' | 'admin'
+  role: 'farmer' | 'vendor' | 'expert' | 'admin' | 'buyer' | 'fpo_agent'
   verified: boolean
   created_at: string
   location?: string

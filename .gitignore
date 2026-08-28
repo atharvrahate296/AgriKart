@@ -16,6 +16,9 @@ z/**
 **/*.env
 **/*.env.*
 
+models/
+./dataset
+dataset/
 
 # ---- Dependencies ----
 node_modules/

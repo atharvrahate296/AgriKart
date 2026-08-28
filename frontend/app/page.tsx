@@ -1,42 +1,39 @@
 import HeroSection from '@/components/hero-section'
 import FeaturesInfo from '@/components/features-info'
-import FeaturedProducts from '@/components/featured-products'
-import CategoriesSection from '@/components/categories-section'
-import CallToAction from '@/components/cta'
-import Image from 'next/image'
+import Footer from '@/components/footer'
 
 export default function Home() {
   return (
     <>
       <HeroSection />
       <FeaturesInfo />
-      
-      {/* Shared background section wrapping both Shop by Category and Featured Products */}
-      <div className="relative overflow-hidden border-y border-gray-100">
-        {/* Background tractor spray image spanning both sections */}
-        <div className="absolute inset-0 pointer-events-none select-none z-0">
-          <Image
-            src="/images/tractor_spray.png"
-            alt="Agricultural backdrop"
-            fill
-            sizes="100vw"
-            className="object-cover object-center"
-            priority
-          />
+
+      {/* CTA Section */}
+      <section className="py-16 bg-gradient-to-r from-green-700 to-emerald-600 text-white">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <h2 className="text-3xl font-extrabold mb-4">
+            Ready to eliminate intermediaries?
+          </h2>
+          <p className="text-lg text-green-100 mb-8 max-w-2xl mx-auto">
+            Whether you&apos;re a bulk buyer looking for reliable supply or a farmer seeking confirmed demand —
+            AgriKart connects you directly.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a
+              href="/auth/signup"
+              className="inline-flex items-center justify-center gap-2 bg-white text-green-700 px-8 py-3.5 rounded-xl font-bold hover:bg-green-50 transition shadow-lg"
+            >
+              Join as Buyer
+            </a>
+            <a
+              href="/auth/signup"
+              className="inline-flex items-center justify-center gap-2 border-2 border-white text-white px-8 py-3.5 rounded-xl font-bold hover:bg-white/10 transition"
+            >
+              Join as Farmer / FPO
+            </a>
+          </div>
         </div>
-
-        {/* Premium backdrop overlay for glassmorphic style and high text/card legibility */}
-        <div className="absolute inset-0 bg-white/75 backdrop-blur-[1px] pointer-events-none z-10" />
-
-        {/* Content layers above the background */}
-        <div className="relative z-20">
-          <CategoriesSection />
-          <FeaturedProducts />
-        </div>
-      </div>
-
-      <CallToAction />
+      </section>
     </>
   )
 }
-

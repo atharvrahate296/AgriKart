@@ -1,77 +1,80 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
-import { FiArrowRight, FiCpu, FiMessageCircle, FiTrendingUp, FiFileText, FiLock } from 'react-icons/fi'
+import { FiLayers, FiTruck, FiCheckCircle, FiLock, FiArrowRight } from 'react-icons/fi'
 import { useAuth } from '@/lib/hooks/useAuth'
 
 export default function FeaturesInfo() {
   const { user } = useAuth()
 
-  const list = [
+  const modules = [
     {
-      title: '🔬 Disease Intelligence',
-      description: 'Upload crop photos for instant AI-based disease diagnosis and prevention guides.',
-      link: '/disease/detect',
+      title: 'Demand-Led Aggregation',
+      description: 'Buyers post confirmed requirements. The platform matches nearby FPOs with the right crop, quantity and quality — eliminating speculative farming.',
+      link: '/demands',
       bgColor: 'bg-green-50 border-green-100 text-green-950',
-      icon: FiCpu,
+      icon: FiLayers,
       iconColor: 'text-green-600',
+      emoji: '📋',
     },
     {
-      title: '🤖 AI Agricultural Assistant',
-      description: 'Interact with our LangChain chatbot for localized crops, weather and pesticide guidance.',
-      link: '/assistant',
-      bgColor: 'bg-emerald-50 border-emerald-100 text-emerald-950',
-      icon: FiMessageCircle,
-      iconColor: 'text-emerald-600',
-    },
-    {
-      title: '📋 Government Schemes Hub',
-      description: 'Evaluate your eligibility for agricultural subsidies and apply to schemes directly.',
-      link: '/schemes',
+      title: 'Shared Micro-Logistics',
+      description: 'Pool partial farmer loads into shared transport. AI optimizes multi-stop pickup routes to minimize distance, time and fuel costs.',
+      link: '/logistics',
       bgColor: 'bg-blue-50 border-blue-100 text-blue-950',
-      icon: FiFileText,
+      icon: FiTruck,
       iconColor: 'text-blue-600',
+      emoji: '🚛',
     },
     {
-      title: '📰 Agri News & Alert Desk',
-      description: 'Stay alert with real-time crop disease spread warnings and regional weather forecasts.',
-      link: '/news',
+      title: 'Verifiable Quality Grading',
+      description: 'FPO agents inspect and grade produce at the farm gate. Photo evidence and quality certificates build buyer confidence before dispatch.',
+      link: '/quality',
       bgColor: 'bg-amber-50 border-amber-100 text-amber-950',
-      icon: FiTrendingUp,
+      icon: FiCheckCircle,
       iconColor: 'text-amber-600',
+      emoji: '🔬',
+    },
+    {
+      title: 'Escrow & Settlement',
+      description: 'Buyer payments are held in escrow until delivery is verified. Farmers receive transparent, guaranteed payouts with full status tracking.',
+      link: '/orders',
+      bgColor: 'bg-emerald-50 border-emerald-100 text-emerald-950',
+      icon: FiLock,
+      iconColor: 'text-emerald-600',
+      emoji: '🔐',
     },
   ]
 
   return (
-    <section className="py-20 relative overflow-hidden border-t border-gray-100">
-      {/* Background image covering the entire section - aligned to top to prevent cropping the farmer's head */}
-      <div className="absolute inset-0 pointer-events-none select-none z-0">
-        <Image
-          src="/images/farmer_fertilizer.png"
-          alt="Indian farmer with liquid fertilizer"
-          fill
-          sizes="100vw"
-          className="object-cover object-top"
-          priority
-        />
-      </div>
-
-      {/* Premium semi-transparent overlay to ensure text contrast while keeping the image vibrant */}
-      <div className="absolute inset-0 bg-white/40 backdrop-blur-[1px] pointer-events-none z-10" />
-
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-20">
+    <section className="py-16 bg-white border-t border-gray-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-12">
           <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-            🌾 Premium Agricultural Features
+            How AgriKart Works
           </h2>
           <p className="mt-4 text-lg text-gray-500">
-            Empowering modern farming practices with advanced AI intelligence and unified agricultural databases.
+            Four integrated modules that transform agricultural supply chains — from confirmed demand to settled payment.
           </p>
         </div>
 
+        {/* Workflow Arrow */}
+        <div className="hidden lg:flex items-center justify-center gap-2 mb-10 text-sm font-semibold text-gray-400">
+          <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full">Demand</span>
+          <FiArrowRight />
+          <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full">Match</span>
+          <FiArrowRight />
+          <span className="bg-amber-100 text-amber-700 px-3 py-1 rounded-full">Verify</span>
+          <FiArrowRight />
+          <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full">Transport</span>
+          <FiArrowRight />
+          <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full">Deliver</span>
+          <FiArrowRight />
+          <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full">Settle</span>
+        </div>
+
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {list.map((item) => {
+          {modules.map((item, idx) => {
             const Icon = item.icon
             const targetLink = user ? item.link : `/auth/login?redirect=${item.link}`
             return (
@@ -81,12 +84,10 @@ export default function FeaturesInfo() {
               >
                 <div>
                   <div className="flex items-center gap-2 mb-3">
-                    <Icon className={`text-2xl ${item.iconColor}`} />
-                    <h3 className="font-bold text-lg flex items-center gap-1.5">
-                      {item.title}
-                      {!user && <FiLock className="text-gray-400 text-sm" />}
-                    </h3>
+                    <span className="text-2xl">{item.emoji}</span>
+                    <span className="text-xs font-bold text-gray-400 uppercase">Module {idx + 1}</span>
                   </div>
+                  <h3 className="font-bold text-lg mb-2">{item.title}</h3>
                   <p className="text-sm opacity-90 leading-relaxed mb-6">
                     {item.description}
                   </p>
@@ -95,7 +96,7 @@ export default function FeaturesInfo() {
                   href={targetLink}
                   className="inline-flex items-center gap-1.5 text-sm font-bold hover:underline"
                 >
-                  {user ? 'Access Feature' : 'Login to Access'} <FiArrowRight />
+                  {user ? 'Explore' : 'Login to Access'} <FiArrowRight />
                 </Link>
               </div>
             )

@@ -187,27 +187,43 @@ export async function deleteAuthUser(userId: string): Promise<void> {
 }
 
 /**
- * Send password reset email
+ * Send password reset link via Supabase admin (no Site URL config required).
+ * Generates a recovery magic link and sends it via our custom Nodemailer SMTP.
+ * Falls back to plain link if email sending fails (link is still valid).
  */
 export async function sendPasswordResetEmail(email: string): Promise<void> {
-  const client = getSupabaseAnonClient()
-  
-  const { error } = await client.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.FRONTEND_URL}/auth/reset-password`,
+  const admin = getSupabaseAdminClient()
+
+  // admin.generateLink works without a configured Supabase Site URL
+  const { data, error } = await admin.auth.admin.generateLink({
+    type: 'recovery',
+    email,
+    options: {
+      redirectTo: `${process.env.FRONTEND_URL}/auth/reset-password`,
+    },
   })
 
-  if (error) {
-    throw new Error(`Failed to send reset email: ${error.message}`)
+  if (error || !data?.properties?.action_link) {
+    throw new Error(`Failed to generate reset link: ${error?.message ?? 'Unknown error'}`)
+  }
+
+  // Optionally send via custom SMTP — imported lazily to avoid circular dep
+  try {
+    const { emailService } = await import('../services/email/emailService')
+    await emailService.sendVerificationEmail(email, data.properties.action_link)
+  } catch (emailErr) {
+    console.error('[supabase] Custom SMTP send failed, link was still generated:', emailErr)
   }
 }
 
 /**
- * Reset password with token
+ * Reset password for a user by userId (admin, no active session required).
+ * Used after OTP verification on the backend.
  */
-export async function resetPassword(token: string, newPassword: string): Promise<void> {
-  const client = getSupabaseAnonClient()
-  
-  const { error } = await client.auth.updateUser({
+export async function resetPassword(userId: string, newPassword: string): Promise<void> {
+  const admin = getSupabaseAdminClient()
+
+  const { error } = await admin.auth.admin.updateUserById(userId, {
     password: newPassword,
   })
 

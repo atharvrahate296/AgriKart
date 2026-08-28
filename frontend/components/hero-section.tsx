@@ -1,11 +1,15 @@
 'use client'
 
 import Link from 'next/link'
-import { FiArrowRight, FiTruck, FiShield, FiHeadphones } from 'react-icons/fi'
+import { FiArrowRight, FiTruck, FiShield, FiCheckCircle } from 'react-icons/fi'
+import { useAuth } from '@/lib/hooks/useAuth'
 
 export default function HeroSection() {
+  const { user } = useAuth()
+  const isBuyer = user?.role === 'buyer' || user?.role === 'vendor'
+
   return (
-    <div className="relative bg-gradient-to-r from-green-600 via-green-500 to-emerald-600 text-white pt-8 pb-10 md:pt-12 md:pb-14 overflow-hidden">
+    <div className="relative bg-gradient-to-r from-green-700 via-green-600 to-emerald-600 text-white pt-10 pb-14 md:pt-16 md:pb-20 overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute inset-0" style={{
@@ -14,83 +18,96 @@ export default function HeroSection() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
           {/* Left Content */}
           <div className="space-y-6">
             <div>
-              <p className="text-green-100 text-lg font-semibold mb-2">Welcome to AgriKart</p>
-              <h1 className="text-5xl md:text-6xl font-bold leading-tight">
-                Empowering Farmers with Quality Products
+              <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm rounded-full px-4 py-1.5 mb-4">
+                <span className="w-2 h-2 bg-green-300 rounded-full animate-pulse"></span>
+                <span className="text-sm font-semibold text-green-100">SIH 26033 — Eliminating Intermediaries</span>
+              </div>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
+                Find Farmers for{' '}
+                <span className="text-green-200">Confirmed Demand</span>
               </h1>
             </div>
 
-            <p className="text-xl text-green-50 leading-relaxed">
-              Direct connection between farmers and verified vendors. Access premium agricultural products, competitive prices, and expert guidance all in one place.
+            <p className="text-lg text-green-50 leading-relaxed max-w-xl">
+              Stop speculative harvesting. AgriKart connects institutional buyers directly with farmers and FPOs
+              through demand-first aggregation, quality verification, and shared logistics.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">
+              {isBuyer ? (
+                <Link
+                  href="/demands/create"
+                  className="inline-flex items-center gap-2 bg-white text-green-700 px-8 py-3.5 rounded-xl font-bold hover:bg-green-50 transition transform hover:scale-105 shadow-lg shadow-green-900/20"
+                >
+                  Post a Demand <FiArrowRight size={20} />
+                </Link>
+              ) : user ? (
+                <Link
+                  href="/supply"
+                  className="inline-flex items-center gap-2 bg-white text-green-700 px-8 py-3.5 rounded-xl font-bold hover:bg-green-50 transition transform hover:scale-105 shadow-lg shadow-green-900/20"
+                >
+                  View Demands <FiArrowRight size={20} />
+                </Link>
+              ) : (
+                <Link
+                  href="/auth/signup"
+                  className="inline-flex items-center gap-2 bg-white text-green-700 px-8 py-3.5 rounded-xl font-bold hover:bg-green-50 transition transform hover:scale-105 shadow-lg shadow-green-900/20"
+                >
+                  Get Started <FiArrowRight size={20} />
+                </Link>
+              )}
               <Link
-                href="/products"
-                className="inline-flex items-center gap-2 bg-white text-green-600 px-8 py-3 rounded-lg font-bold hover:bg-green-50 transition transform hover:scale-105"
+                href="/demands"
+                className="inline-flex items-center gap-2 border-2 border-white/40 text-white px-8 py-3.5 rounded-xl font-bold hover:bg-white/10 transition"
               >
-                Explore Products <FiArrowRight size={20} />
-              </Link>
-              <Link
-                href="/auth/signup"
-                className="inline-flex items-center gap-2 border-2 border-white text-white px-8 py-3 rounded-lg font-bold hover:bg-white/10 transition"
-              >
-                Get Started
+                Explore Demand Board
               </Link>
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 pt-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6">
               <div>
-                <p className="text-3xl font-bold">50K+</p>
-                <p className="text-green-100 text-sm">Products</p>
+                <p className="text-2xl font-bold">250+</p>
+                <p className="text-green-200 text-xs font-medium">Active Demands</p>
               </div>
               <div>
-                <p className="text-3xl font-bold">10K+</p>
-                <p className="text-green-100 text-sm">Vendors</p>
+                <p className="text-2xl font-bold">1,200+</p>
+                <p className="text-green-200 text-xs font-medium">FPOs Connected</p>
               </div>
               <div>
-                <p className="text-3xl font-bold">100K+</p>
-                <p className="text-green-100 text-sm">Farmers</p>
+                <p className="text-2xl font-bold">5,400 MT</p>
+                <p className="text-green-200 text-xs font-medium">Fulfilled</p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold">18%</p>
+                <p className="text-green-200 text-xs font-medium">Better Price for Farmers</p>
               </div>
             </div>
           </div>
 
-          {/* Right Side - Features */}
-          <div className="space-y-4">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:bg-white/20 transition">
-              <div className="flex gap-4 items-start">
-                <FiTruck className="text-2xl flex-shrink-0 mt-1" />
-                <div>
-                  <h3 className="font-bold text-lg mb-1">Fast Delivery</h3>
-                  <p className="text-green-100 text-sm">Get products delivered to your doorstep in 2-5 business days</p>
+          {/* Right Side - Workflow Steps */}
+          <div className="space-y-3">
+            {[
+              { icon: FiCheckCircle, title: 'Confirmed Demand First', desc: 'Buyers post verified requirements — no speculative farming' },
+              { icon: FiShield, title: 'Quality Verified at Source', desc: 'FPO agents grade and certify produce before dispatch' },
+              { icon: FiTruck, title: 'Shared Micro-Logistics', desc: 'AI-optimized routes pool partial loads to cut transport costs' },
+            ].map((item, i) => (
+              <div key={i} className="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20 hover:bg-white/20 transition">
+                <div className="flex gap-4 items-start">
+                  <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center shrink-0">
+                    <item.icon className="text-xl" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-base mb-1">{item.title}</h3>
+                    <p className="text-green-100 text-sm leading-relaxed">{item.desc}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:bg-white/20 transition">
-              <div className="flex gap-4 items-start">
-                <FiShield className="text-2xl flex-shrink-0 mt-1" />
-                <div>
-                  <h3 className="font-bold text-lg mb-1">Verified Sellers</h3>
-                  <p className="text-green-100 text-sm">All vendors are KYC verified and trusted partners</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:bg-white/20 transition">
-              <div className="flex gap-4 items-start">
-                <FiHeadphones className="text-2xl flex-shrink-0 mt-1" />
-                <div>
-                  <h3 className="font-bold text-lg mb-1">24/7 Support</h3>
-                  <p className="text-green-100 text-sm">Direct chat with vendors for queries and bulk orders</p>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>
