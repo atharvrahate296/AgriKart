@@ -3,7 +3,7 @@
  * Defines all types for authentication system
  */
 
-export type UserRole = 'farmer' | 'vendor' | 'expert' | 'admin'
+export type UserRole = 'farmer' | 'vendor' | 'expert' | 'admin' | 'buyer' | 'fpo_agent'
 
 /**
  * JWT Payload structure

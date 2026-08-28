@@ -103,6 +103,46 @@ const ROLE_PERMISSIONS: RolePermissions = {
     // Full access to all resources
     { resource: '*', action: '*' },
   ],
+
+  buyer: [
+    { resource: 'profile', action: 'read', owned: true },
+    { resource: 'profile', action: 'update', owned: true },
+    { resource: 'products', action: 'read' },
+    { resource: 'categories', action: 'read' },
+    { resource: 'reviews', action: 'read' },
+    { resource: 'reviews', action: 'create', owned: true },
+    { resource: 'cart', action: 'create', owned: true },
+    { resource: 'cart', action: 'read', owned: true },
+    { resource: 'cart', action: 'update', owned: true },
+    { resource: 'cart', action: 'delete', owned: true },
+    { resource: 'orders', action: 'create', owned: true },
+    { resource: 'orders', action: 'read', owned: true },
+    { resource: 'schemes', action: 'read' },
+    { resource: 'articles', action: 'read' },
+  ],
+
+  fpo_agent: [
+    { resource: 'profile', action: 'read', owned: true },
+    { resource: 'profile', action: 'update', owned: true },
+    { resource: 'products', action: 'read' },
+    { resource: 'categories', action: 'read' },
+    { resource: 'reviews', action: 'read' },
+    { resource: 'cart', action: 'create', owned: true },
+    { resource: 'cart', action: 'read', owned: true },
+    { resource: 'cart', action: 'update', owned: true },
+    { resource: 'cart', action: 'delete', owned: true },
+    { resource: 'orders', action: 'create', owned: true },
+    { resource: 'orders', action: 'read', owned: true },
+    { resource: 'diseases', action: 'read' },
+    { resource: 'predictions', action: 'create', owned: true },
+    { resource: 'predictions', action: 'read', owned: true },
+    { resource: 'predictions', action: 'delete', owned: true },
+    { resource: 'schemes', action: 'read' },
+    { resource: 'articles', action: 'read' },
+    { resource: 'alerts', action: 'read', owned: true },
+    { resource: 'chat', action: 'create', owned: true },
+    { resource: 'chat', action: 'read', owned: true },
+  ],
 }
 
 /**

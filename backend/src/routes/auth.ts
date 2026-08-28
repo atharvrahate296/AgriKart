@@ -48,6 +48,7 @@ router.post('/signup', async (req: Request, res: Response, next: NextFunction) =
     const signupData: SignUpRequest = {
       email: req.body.email,
       password: req.body.password,
+      confirmPassword: req.body.confirmPassword || req.body.password,
       fullName: req.body.fullName,
       phone: req.body.phone,
       role: req.body.role || 'farmer',
@@ -209,20 +210,20 @@ router.post(
         })
       }
 
-      // Update password via authService. We need admin rights or similar for this if we don't have token.
-      // But authService.confirmPasswordReset expects a token.
-      // Actually, since we're verifying the OTP manually, we should use supabase admin to change password.
+      // Verify OTP passed above; now look up the user's auth ID from the profiles table.
+      // NOTE: Must use 'profiles', NOT 'users' — profiles is the authoritative metadata table
+      //       that is always kept in sync with auth.users via the on_auth_user_created trigger.
       const { getSupabaseAdminClient } = await import('../config/supabase')
       const supabaseAdmin = getSupabaseAdminClient()
-      
+
       const { data: userData, error: userError } = await supabaseAdmin
-        .from('users')
+        .from('profiles')
         .select('id')
         .eq('email', email)
         .single()
-        
+
       if (userError || !userData) {
-         return res.status(404).json({
+        return res.status(404).json({
           error: {
             message: 'User not found',
             code: 'USER_NOT_FOUND',

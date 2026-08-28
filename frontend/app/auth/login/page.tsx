@@ -1,19 +1,28 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi'
+import { FiMail, FiLock, FiEye, FiEyeOff, FiCheckCircle } from 'react-icons/fi'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [userType, setUserType] = useState('farmer')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [message, setMessage] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const registered = new URLSearchParams(window.location.search).get('registered')
+      if (registered) {
+        setMessage('Account created! Please sign in with your email & password.')
+      }
+    }
+  }, [])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -28,29 +37,13 @@ export default function LoginPage() {
 
       if (supabaseError) throw supabaseError
 
-      const authUser = data.user
-      const { data: usersProfile } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', authUser.id)
-        .maybeSingle()
-
-      const { data: appProfile } = usersProfile
-        ? { data: null }
-        : await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', authUser.id)
-            .maybeSingle()
-
-      const actualRole = usersProfile?.role || appProfile?.role || userType
       const redirect = typeof window !== 'undefined'
         ? new URLSearchParams(window.location.search).get('redirect')
         : null
 
-      router.push(redirect || (actualRole === 'vendor' ? '/vendor' : '/products'))
+      router.push(redirect || '/dashboard')
     } catch (err: any) {
-      setError(err.message)
+      setError(err.message || 'Invalid email or password')
     } finally {
       setLoading(false)
     }
@@ -68,7 +61,7 @@ export default function LoginPage() {
         {/* Card */}
         <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/50 p-8">
           {/* Header */}
-          <div className="text-center mb-8">
+          <div className="text-center mb-6">
             <div className="inline-flex items-center gap-2 mb-3">
               <span className="text-3xl">🌾</span>
               <h1 className="text-2xl font-extrabold text-gray-900">AgriKart</h1>
@@ -76,36 +69,14 @@ export default function LoginPage() {
             <p className="text-gray-500 text-sm">Welcome back! Sign in to your account.</p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-5">
-            {/* User Type Toggle */}
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Login as</label>
-              <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-xl">
-                <button
-                  type="button"
-                  onClick={() => setUserType('farmer')}
-                  className={`py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                    userType === 'farmer'
-                      ? 'bg-white text-green-700 shadow-sm'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  🌱 Farmer
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setUserType('vendor')}
-                  className={`py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                    userType === 'vendor'
-                      ? 'bg-white text-green-700 shadow-sm'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  🏪 Vendor
-                </button>
-              </div>
+          {message && (
+            <div className="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
+              <FiCheckCircle className="shrink-0 text-green-600" size={16} />
+              <span>{message}</span>
             </div>
+          )}
 
+          <form onSubmit={handleLogin} className="space-y-4">
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Email Address</label>
@@ -115,7 +86,7 @@ export default function LoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="input-modern pl-10"
+                  className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none"
                   placeholder="your@email.com"
                   required
                 />
@@ -139,7 +110,7 @@ export default function LoginPage() {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="input-modern pl-10 pr-10"
+                  className="w-full pl-10 pr-10 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none"
                   placeholder="••••••••"
                   required
                 />

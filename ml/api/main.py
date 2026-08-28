@@ -1,20 +1,29 @@
+import sys
+import os
+
+# Ensure ml root directory is in sys.path
+ml_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if ml_root not in sys.path:
+    sys.path.insert(0, ml_root)
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from api.routes import health, predict, train
+from api.routes import health
+from api.demand_routes import router as demand_router
 from config import settings
 
 app = FastAPI(
-    title=settings.PROJECT_NAME,
-    description="AgriKart Machine Learning Crop Disease Detection Service API",
+    title="AgriKart Demand Forecasting ML Service",
+    description="AgriKart Machine Learning Demand & Price Forecasting API",
     version="2.0.0"
 )
 
 # CORS Configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production, restrict to internal networks / Express server IP
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -36,13 +45,12 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 # Mount Routers
 app.include_router(health.router, prefix="/api", tags=["System"])
-app.include_router(predict.router, prefix="/api", tags=["Inference"])
-app.include_router(train.router, prefix="/api", tags=["Training"])
+app.include_router(demand_router, prefix="/api", tags=["Demand Forecasting"])
 
 @app.on_event("startup")
 async def startup_event():
     print(f"==================================================")
-    print(f"      AgriKart ML Service Started Successfully    ")
-    print(f"      Environment: {settings.ENV}                 ")
-    print(f"      Inference Engine Mode: PyTorch              ")
+    print(f"   AgriKart ML Demand Service Started Successfully ")
+    print(f"   Environment: {settings.ENV}                      ")
+    print(f"   Engine: XGBoost Demand & Price Forecasting      ")
     print(f"==================================================")

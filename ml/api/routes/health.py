@@ -1,21 +1,29 @@
+import os
 from fastapi import APIRouter
-import torch
-from src.inference import classifier
+from config import settings
 
 router = APIRouter()
 
-@router.get("/health")
+@router.get("/health", summary="System Health Check", tags=["System"])
 async def health_check():
     """
-    Returns API status, PyTorch GPU visibility, and classifier mode.
+    Returns API status, environment, and demand forecasting model readiness.
     """
-    cuda_available = torch.cuda.is_available()
-    device = "cuda" if cuda_available else "cpu"
+    model_dir = os.environ.get("DEMAND_MODEL_DIR", "models")
+    price_model_exists = os.path.exists(os.path.join(model_dir, "price_forecaster.pkl"))
+    demand_model_exists = os.path.exists(os.path.join(model_dir, "demand_forecaster.pkl"))
+    encoders_exist = os.path.exists(os.path.join(model_dir, "label_encoders.pkl"))
     
+    models_ready = price_model_exists and demand_model_exists and encoders_exist
+
     return {
         "status": "healthy",
-        "device": device,
-        "cuda_available": cuda_available,
-        "model_version": classifier.model_version,
-        "is_mock_engine": classifier.is_mock
+        "project": settings.PROJECT_NAME,
+        "environment": settings.ENV,
+        "models_ready": models_ready,
+        "components": {
+            "price_forecaster": price_model_exists,
+            "demand_forecaster": demand_model_exists,
+            "label_encoders": encoders_exist,
+        }
     }

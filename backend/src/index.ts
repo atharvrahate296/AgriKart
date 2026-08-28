@@ -17,11 +17,12 @@ dotenv.config()
 
 // Import routes and middleware
 import authRoutes from './routes/auth'
-import marketplaceRoutes from './routes/marketplace'
-import diseaseRoutes from './routes/disease'
-import schemeRoutes from './routes/schemes'
-import newsRoutes from './routes/news'
-import chatRoutes from './routes/chat'
+import demandsRoutes from './routes/demands'
+import supplyRoutes from './routes/supply'
+import escrowRoutes from './routes/escrow'
+import aggregationRoutes from './routes/aggregation'
+import logisticsRoutes from './routes/logistics'
+import qualityAuditRoutes from './routes/qualityAudit'
 import { authMiddleware } from './middleware/auth'
 import { AppError, isAppError } from './utils/errors'
 
@@ -120,29 +121,20 @@ app.get('/health', (req: Request, res: Response) => {
 })
 
 /**
- * API Routes
+ * API Routes — Demand-First Supply Chain
  */
 app.use('/auth', authRoutes)
-app.use('/api/marketplace', marketplaceRoutes)
-app.use('/api/disease', diseaseRoutes)
-app.use('/api/schemes', schemeRoutes)
-app.use('/api/news', newsRoutes)
-app.use('/api/chat', chatRoutes)
+app.use('/api/demands', demandsRoutes)
+app.use('/api/supply', supplyRoutes)
+app.use('/api/escrow', escrowRoutes)
+app.use('/api/aggregation', aggregationRoutes)
+app.use('/api/logistics', logisticsRoutes)
+app.use('/api/quality', qualityAuditRoutes)
 
 /**
  * Protected API Routes
- * Add other authenticated routes here
  */
 app.use('/api', authMiddleware)
-
-// Example protected route
-app.get('/api/protected', (req: Request, res: Response) => {
-  res.json({
-    success: true,
-    message: 'You have access to protected content',
-    user: req.auth,
-  })
-})
 
 /**
  * 404 Handler

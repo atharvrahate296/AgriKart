@@ -5,8 +5,8 @@ import Footer from '@/components/footer'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'AgriKart - Farmers to Vendors Network',
-  description: 'Modern e-commerce platform connecting farmers with vendors and retailers for agricultural products',
+  title: 'AgriKart — Demand-First Agricultural Supply Chain',
+  description: 'Connecting farmers and FPOs directly with bulk buyers through confirmed demand, quality verification, shared logistics and escrow settlement. SIH 26033.',
 }
 
 export default function RootLayout({

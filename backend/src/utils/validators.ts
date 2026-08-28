@@ -54,20 +54,20 @@ export const signUpSchema = z.object({
     .toLowerCase(),
   password: z
     .string()
-    .regex(PASSWORD_REGEX, 
-      'Password must be at least 8 characters with uppercase, lowercase, number, and special character'),
+    .min(6, 'Password must be at least 6 characters'),
   confirmPassword: z
-    .string(),
+    .string()
+    .optional(),
   fullName: z
     .string()
     .min(2, 'Full name must be at least 2 characters')
     .max(100, 'Full name must not exceed 100 characters'),
   phone: z
     .string()
-    .regex(PHONE_REGEX, 'Invalid phone number format')
-    .optional(),
+    .optional()
+    .or(z.literal('')),
   role: z
-    .enum(['farmer', 'vendor', 'expert', 'admin'] as const)
+    .enum(['farmer', 'buyer', 'fpo_agent', 'admin', 'vendor', 'expert'] as const)
     .default('farmer'),
   location: z.object({
     state: z.string().min(1, 'State is required'),
@@ -78,7 +78,7 @@ export const signUpSchema = z.object({
       .regex(PINCODE_REGEX, 'Invalid pincode format')
       .optional(),
   }).optional(),
-}).refine((data) => data.password === data.confirmPassword, {
+}).refine((data) => !data.confirmPassword || data.password === data.confirmPassword, {
   message: 'Passwords do not match',
   path: ['confirmPassword'],
 })
@@ -259,5 +259,5 @@ export function validatePincode(pincode: string): boolean {
  * Validate role
  */
 export function isValidRole(role: string): role is UserRole {
-  return ['farmer', 'vendor', 'expert', 'admin'].includes(role)
+  return ['farmer', 'vendor', 'expert', 'admin', 'buyer', 'fpo_agent'].includes(role)
 }
