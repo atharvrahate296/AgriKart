@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useAuth } from '@/lib/hooks/useAuth'
 import Link from 'next/link'
-import { FiPlus, FiFilter, FiArrowRight } from 'react-icons/fi'
+import { FiPlus, FiFilter, FiArrowRight, FiInbox } from 'react-icons/fi'
 import { getDemands } from '@/lib/api/demands'
+import { useQuery } from '@tanstack/react-query'
+import { motion, AnimatePresence } from 'framer-motion'
 
 const statusConfig: Record<string, { label: string; bg: string; text: string }> = {
   open: { label: 'Open', bg: 'bg-blue-50', text: 'text-blue-700' },
@@ -16,159 +18,196 @@ const statusConfig: Record<string, { label: string; bg: string; text: string }> 
 
 export default function DemandsPage() {
   const { user } = useAuth()
-  const [demands, setDemands] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<string>('')
   const isBuyer = user?.role === 'buyer' || user?.role === 'vendor'
 
-  useEffect(() => {
-    loadDemands()
-  }, [filter, user])
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['demands', filter, user?.id],
+    queryFn: () => getDemands({ 
+      status: filter || undefined, 
+      buyer_id: (isBuyer && user) ? user.id : undefined 
+    }),
+    enabled: !!user,
+  })
 
-  const loadDemands = async () => {
-    setLoading(true)
-    try {
-      const params: any = {}
-      if (filter) params.status = filter
-      if (isBuyer && user) params.buyer_id = user.id
-      const res = await getDemands(params)
-      setDemands(res.data || [])
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setLoading(false)
-    }
-  }
-
+  const demands = data?.data || []
   const statuses = ['', 'open', 'partially_matched', 'fully_matched', 'delivered']
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4">
+    <div className="min-h-screen bg-gray-50/50 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10">
           <div>
-            <h1 className="text-3xl font-extrabold text-gray-900">
-              {isBuyer ? 'My Demands' : 'Demand Board'}
+            <h1 className="text-4xl font-black text-gray-900 tracking-tight">
+              {isBuyer ? 'My Demands' : 'Marketplace Demands'}
             </h1>
-            <p className="text-gray-500 text-sm mt-1">
-              {isBuyer ? 'Track your demand requirements and fulfillment status.' : 'Browse active demand requirements from institutional buyers.'}
+            <p className="text-gray-500 text-lg mt-2">
+              {isBuyer ? 'Manage your active requirements and track fulfillment.' : 'Connect directly with buyers looking for agricultural produce.'}
             </p>
           </div>
           {isBuyer && (
             <Link
               href="/demands/create"
-              className="inline-flex items-center justify-center gap-2 bg-green-600 text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-green-700 transition-colors shadow-sm"
+              className="inline-flex items-center justify-center gap-2 bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 active:scale-95"
             >
-              <FiPlus size={16} /> New Demand
+              <FiPlus size={20} /> Create New Demand
             </Link>
           )}
         </div>
 
         {/* Filters */}
-        <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
-          <FiFilter className="text-gray-400 shrink-0" />
-          {statuses.map(s => (
-            <button
-              key={s}
-              onClick={() => setFilter(s)}
-              className={`text-sm font-semibold px-3 py-1.5 rounded-lg border transition-colors whitespace-nowrap ${
-                filter === s
-                  ? 'bg-green-600 text-white border-green-600'
-                  : 'bg-white text-gray-600 border-gray-200 hover:border-green-300 hover:text-green-700'
-              }`}
-            >
-              {s === '' ? 'All' : statusConfig[s]?.label || s}
-            </button>
-          ))}
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-8">
+          <div className="flex items-center gap-4 overflow-x-auto no-scrollbar">
+            <div className="flex items-center gap-2 text-gray-400 border-r pr-4 mr-2">
+              <FiFilter size={18} />
+              <span className="text-sm font-bold uppercase tracking-wider">Status</span>
+            </div>
+            {statuses.map(s => (
+              <button
+                key={s}
+                onClick={() => setFilter(s)}
+                className={`text-sm font-bold px-5 py-2 rounded-xl transition-all whitespace-nowrap ${
+                  filter === s
+                    ? 'bg-gray-900 text-white shadow-md'
+                    : 'bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-900'
+                }`}
+              >
+                {s === '' ? 'All Demands' : statusConfig[s]?.label || s}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Demand Cards */}
-        {loading ? (
-          <div className="text-center py-20 text-gray-400">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-600 mx-auto mb-4"></div>
-            Loading demands...
-          </div>
-        ) : demands.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm">
-            <div className="text-5xl mb-3">📋</div>
-            <h3 className="text-lg font-bold text-gray-800 mb-1">No Demands Found</h3>
-            <p className="text-gray-400 text-sm">
-              {isBuyer ? "Create your first demand to get started." : "Check back later for new requirements."}
-            </p>
-            {isBuyer && (
-              <Link href="/demands/create" className="inline-flex items-center gap-2 mt-4 text-green-600 font-semibold text-sm hover:underline">
-                <FiPlus size={14} /> Create Demand
-              </Link>
-            )}
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {demands.map((d: any) => {
-              const status = statusConfig[d.status] ?? statusConfig.open
-              return (
-                <Link
-                  key={d.id}
-                  href={`/demands/${d.id}`}
-                  className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 hover:shadow-md hover:border-green-200 transition-all group"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <span className="text-xl mr-2">🌾</span>
-                      <span className="font-bold text-gray-900 capitalize text-lg">{d.crop_type}</span>
-                    </div>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${status.bg} ${status.text}`}>
-                      {status.label}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-y-2 text-sm mb-4">
-                    <div>
-                      <p className="text-gray-400 text-xs">Quantity</p>
-                      <p className="font-semibold text-gray-800">{d.required_quantity} MT</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400 text-xs">Max Price</p>
-                      <p className="font-semibold text-gray-800">₹{d.max_price_per_kg}/kg</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400 text-xs">Min Quality</p>
-                      <p className="font-semibold text-gray-800">{d.min_quality_grade || 'B'}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400 text-xs">Required By</p>
-                      <p className="font-semibold text-gray-800">{new Date(d.required_by).toLocaleDateString('en-IN')}</p>
-                    </div>
-                  </div>
-
-                  {/* Fulfillment Progress */}
-                  <div className="mb-3">
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-gray-500 font-medium">Fulfillment</span>
-                      <span className="font-bold text-gray-700">{d.fulfillment_percentage ?? 0}%</span>
-                    </div>
-                    <div className="w-full bg-gray-100 rounded-full h-2">
-                      <div
-                        className="bg-gradient-to-r from-green-500 to-emerald-500 h-2 rounded-full transition-all duration-500"
-                        style={{ width: `${Math.min(d.fulfillment_percentage ?? 0, 100)}%` }}
-                      ></div>
-                    </div>
-                  </div>
-
-                  {/* Buyer Info */}
-                  {d.buyer && (
-                    <div className="flex items-center justify-between border-t border-gray-50 pt-3">
-                      <span className="text-xs text-gray-400">
-                        {isBuyer ? d.delivery_address || 'Delivery TBD' : `Buyer: ${d.buyer.full_name}`}
-                      </span>
-                      <FiArrowRight size={14} className="text-gray-300 group-hover:text-green-500 transition-colors" />
-                    </div>
-                  )}
+        {/* Content Area */}
+        <AnimatePresence mode="wait">
+          {isLoading ? (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex flex-col items-center justify-center py-32"
+            >
+              <div className="relative w-16 h-16">
+                <div className="absolute inset-0 border-4 border-emerald-100 rounded-full"></div>
+                <div className="absolute inset-0 border-4 border-emerald-500 rounded-full border-t-transparent animate-spin"></div>
+              </div>
+              <p className="mt-4 text-gray-500 font-medium animate-pulse">Fetching latest demands...</p>
+            </motion.div>
+          ) : error ? (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center py-20 bg-red-50 rounded-3xl border border-red-100"
+            >
+              <p className="text-red-600 font-bold text-lg">Failed to load demands</p>
+              <p className="text-red-400 text-sm mt-1">Please check your connection and try again.</p>
+            </motion.div>
+          ) : demands.length === 0 ? (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center py-24 bg-white rounded-3xl border-2 border-dashed border-gray-200"
+            >
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-50 rounded-full mb-6">
+                <FiInbox size={32} className="text-gray-300" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-800 mb-2">No active demands found</h3>
+              <p className="text-gray-500 max-w-sm mx-auto mb-8">
+                {isBuyer 
+                  ? "You haven't posted any requirements yet. Start by creating a new demand."
+                  : "There are currently no open demands matching your filters."}
+              </p>
+              {isBuyer && (
+                <Link href="/demands/create" className="text-emerald-600 font-bold hover:text-emerald-700 transition-colors inline-flex items-center gap-2">
+                  <FiPlus /> Get Started Now
                 </Link>
-              )
-            })}
-          </div>
-        )}
+              )}
+            </motion.div>
+          ) : (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              {demands.map((d: any, index: number) => {
+                const status = statusConfig[d.status] ?? statusConfig.open
+                return (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    key={d.id}
+                  >
+                    <Link
+                      href={`/demands/${d.id}`}
+                      className="group block bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-emerald-900/5 hover:border-emerald-100 transition-all duration-300 overflow-hidden h-full"
+                    >
+                      <div className="p-6">
+                        <div className="flex items-start justify-between mb-6">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                              🌾
+                            </div>
+                            <div>
+                              <h3 className="font-bold text-gray-900 capitalize text-lg leading-tight">{d.crop_type}</h3>
+                              <p className="text-xs text-gray-400 font-medium">#{d.id.slice(0, 8)}</p>
+                            </div>
+                          </div>
+                          <span className={`text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-wider ${status.bg} ${status.text} border`}>
+                            {status.label}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-6 mb-6">
+                          <div className="space-y-1">
+                            <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Quantity</p>
+                            <p className="font-black text-gray-900 text-lg">{d.required_quantity} <span className="text-sm font-medium text-gray-500">MT</span></p>
+                          </div>
+                          <div className="space-y-1 text-right">
+                            <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Max Price</p>
+                            <p className="font-black text-emerald-600 text-lg">₹{d.max_price_per_kg}<span className="text-sm font-medium text-gray-400">/kg</span></p>
+                          </div>
+                        </div>
+
+                        {/* Progress */}
+                        <div className="space-y-2 mb-6">
+                          <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
+                            <span className="text-gray-400">Fulfillment</span>
+                            <span className="text-emerald-600">{d.fulfillment_percentage ?? 0}%</span>
+                          </div>
+                          <div className="w-full bg-gray-50 rounded-full h-2 overflow-hidden border border-gray-100">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${Math.min(d.fulfillment_percentage ?? 0, 100)}%` }}
+                              transition={{ duration: 1, ease: "easeOut" }}
+                              className="bg-emerald-500 h-full rounded-full shadow-[0_0_8px_rgba(16,185,129,0.4)]"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-[10px] text-gray-500">
+                              📍
+                            </div>
+                            <span className="text-xs font-semibold text-gray-500 truncate max-w-[140px]">
+                              {isBuyer ? d.delivery_address || 'Delivery TBD' : d.buyer?.full_name || 'AgriBuyer'}
+                            </span>
+                          </div>
+                          <div className="w-8 h-8 rounded-lg bg-gray-50 group-hover:bg-emerald-600 flex items-center justify-center text-gray-400 group-hover:text-white transition-all">
+                            <FiArrowRight />
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  </motion.div>
+                )
+              })}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   )

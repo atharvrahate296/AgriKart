@@ -23,7 +23,7 @@ import escrowRoutes from './routes/escrow'
 import aggregationRoutes from './routes/aggregation'
 import logisticsRoutes from './routes/logistics'
 import qualityAuditRoutes from './routes/qualityAudit'
-import { authMiddleware } from './middleware/auth'
+import { authMiddleware, optionalAuthMiddleware } from './middleware/auth'
 import { AppError, isAppError } from './utils/errors'
 
 // Initialize Express app
@@ -134,7 +134,7 @@ app.use('/api/quality', qualityAuditRoutes)
 /**
  * Protected API Routes
  */
-app.use('/api', authMiddleware)
+app.use('/api', optionalAuthMiddleware)
 
 /**
  * 404 Handler
