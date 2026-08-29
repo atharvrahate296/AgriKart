@@ -50,7 +50,7 @@ export default function Navbar() {
 
   const farmerLinks = [
     { href: '/dashboard', label: 'Dashboard' },
-    { href: '/supply', label: 'Available Demands' },
+    { href: '/supply', label: 'Available Demands', target: '_self' },
     { href: '/quality', label: 'Quality' },
     { href: '/orders', label: 'My Orders' },
   ]
