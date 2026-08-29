@@ -48,7 +48,6 @@ router.post('/signup', async (req: Request, res: Response, next: NextFunction) =
     const signupData: SignUpRequest = {
       email: req.body.email,
       password: req.body.password,
-      confirmPassword: req.body.confirmPassword || req.body.password,
       fullName: req.body.fullName,
       phone: req.body.phone,
       role: req.body.role || 'farmer',
