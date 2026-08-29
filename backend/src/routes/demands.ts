@@ -29,9 +29,11 @@ const router = Router()
  *
  * Behaviour:
  *   - No token required (optionalAuthMiddleware attaches req.auth if present).
- *   - When the user is identified as a farmer (via JWT role or query param
- *     role=farmer) the list is filtered to status IN ('open','partially_matched’).
- *   - Buyers/admins see all demands unless they supply an explicit status filter.
+ *   - When the user is identified as a farmer (via JWT role = 'farmer'
+ *     or query param role=farmer) the list is filtered to status IN
+ *     ('open','partially_matched').
+ *   - Buyers/admins see all demands unless they supply an explicit status
+ *     filter.
  */
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -64,10 +66,12 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       .range(offset, offset + limitNum - 1)
 
     // ---- Role‑based automatic filtering ----
+    // A farmer is identified either by the JWT role claim or by the
+    // explicit ?role=farmer query parameter.
     const userRole: UserRole | undefined = (req.auth as any)?.role as UserRole | undefined
-    const effectiveFarmerRole = role === 'farmer' || userRole === 'farmer'
+    const isFarmer = userRole === 'farmer' || role === 'farmer'
 
-    if (effectiveFarmerRole) {
+    if (isFarmer) {
       // Farmers should only see demands that are still open for commitment
       query = query.in('status', ['open', 'partially_matched'])
     } else if (status) {
