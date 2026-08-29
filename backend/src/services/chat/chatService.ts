@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
 import axios from 'axios';
-import { createSupabaseAdminClient } from '../../config/supabase';
-import { DatabaseError, NotFoundError, ValidationError } from '../../utils/errors';
-import type { ChatSession, ChatMessage, ChatRole } from '../../types/chat';
+import { createSupabaseAdminClient } from '../../config/supabase.js';
+import { DatabaseError, NotFoundError, ValidationError } from '../../utils/errors.js';
+import type { ChatSession, ChatMessage, ChatRole } from '../../types/chat.js';
 
 const LLM_SERVICE_URL = process.env.LLM_SERVICE_URL || 'http://localhost:8001';
 

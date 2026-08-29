@@ -1,4 +1,4 @@
-import { createSupabaseAdminClient } from '../../config/supabase';
+import { createSupabaseAdminClient } from '../../config/supabase.js';
 import { DatabaseError, NotFoundError, ValidationError, ConflictError } from '../../utils/errors';
 import type { 
   Scheme, 

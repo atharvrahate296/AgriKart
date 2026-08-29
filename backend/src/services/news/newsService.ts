@@ -1,5 +1,5 @@
-import { createSupabaseAdminClient } from '../../config/supabase';
-import { DatabaseError, NotFoundError, ValidationError } from '../../utils/errors';
+import { createSupabaseAdminClient } from '../../config/supabase.js';
+import { DatabaseError, NotFoundError, ValidationError } from '../../utils/errors.js';
 import type {
   Article,
   Alert,

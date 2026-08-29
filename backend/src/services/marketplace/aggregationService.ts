@@ -13,7 +13,7 @@
  *   7. Update demand status and fpo_yield.is_aggregated flags
  */
 
-import { getSupabaseAdminClient } from '../../config/supabase'
+import { getSupabaseAdminClient } from '../../config/supabase.js'
 
 // ─────────────────────────────────────────────────────────────────
 // Constants

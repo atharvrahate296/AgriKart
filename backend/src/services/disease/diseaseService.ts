@@ -5,8 +5,8 @@
 
 import axios from 'axios';
 import { createSupabaseAdminClient } from '../../config/supabase';
-import { DatabaseError, NotFoundError, ValidationError, AuthorizationError } from '../../utils/errors';
-import { PredictionFeedbackInput, ExpertVerificationInput } from '../../utils/disease-validators';
+import { DatabaseError, NotFoundError, ValidationError, AuthorizationError } from '../../utils/errors.js';
+import { PredictionFeedbackInput, ExpertVerificationInput } from '../../utils/disease-validators.js';
 
 // FastAPI ML Service predict URL
 const ML_SERVICE_URL = process.env.ML_SERVICE_URL || 'http://localhost:8000/api';

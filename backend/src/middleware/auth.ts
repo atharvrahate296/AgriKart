@@ -4,14 +4,14 @@
  */
 
 import type { Request, Response, NextFunction } from 'express'
-import type { AuthContext, UserRole } from '../types/auth'
+import type { AuthContext, UserRole } from '../types/auth.js'
 import {
   AuthenticationError,
   AuthorizationError,
   ErrorCode,
-} from '../utils/errors'
-import { roleService } from '../services/auth/roleService'
-import { createSupabaseAdminClient } from '../config/supabase'
+} from '../utils/errors.js'
+import { roleService } from '../services/auth/roleService.js'
+import { createSupabaseAdminClient } from '../config/supabase.js'
 
 /**
  * Extend Express Request to include auth context

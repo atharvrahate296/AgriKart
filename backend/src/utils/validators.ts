@@ -4,7 +4,7 @@
  */
 
 import { z } from 'zod'
-import type { UserRole } from '../types/auth'
+import type { UserRole } from '../types/auth.js'
 
 /**
  * Email validation regex
