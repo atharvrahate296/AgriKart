@@ -10,9 +10,9 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express'
-import { getSupabaseAdminClient } from '../config/supabase'
-import { matchDemandsToYields } from '../services/marketplace/aggregationService'
-import type { UserRole } from '../types/auth'
+import { getSupabaseAdminClient } from '../config/supabase.js'
+import { matchDemandsToYields } from '../services/marketplace/aggregationService.js'
+import type { UserRole } from '../types/auth.js'
 
 const router = Router()
 

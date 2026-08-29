@@ -9,7 +9,7 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express'
-import { getSupabaseAdminClient } from '../config/supabase'
+import { getSupabaseAdminClient } from '../config/supabase.js'
 
 const router = Router()
 

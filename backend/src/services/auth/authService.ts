@@ -4,8 +4,8 @@
  * Delegates password handling to Supabase Auth
  */
 
-import type { AuthContext, LoginRequest, SignUpRequest, AuthResponse } from '../../types/auth'
-import type { UserProfile } from '../../types/user'
+import type { AuthContext, LoginRequest, SignUpRequest, AuthResponse } from '../../types/auth.js'
+import type { UserProfile } from '../../types/user.js'
 import { 
   createAuthUser, 
   getUserByEmail, 
@@ -14,19 +14,19 @@ import {
   verifyEmail,
   getSupabaseAdminClient,
   getSupabaseAnonClient,
-} from '../../config/supabase'
+} from '../../config/supabase.js'
 import {
   AuthenticationError,
   ValidationError,
   ConflictError,
   NotFoundError,
   ErrorCode,
-} from '../../utils/errors'
+} from '../../utils/errors.js'
 import {
   loginSchema,
   signUpSchema,
   validateEmail,
-} from '../../utils/validators'
+} from '../../utils/validators.js'
 
 /**
  * Login user with email and password

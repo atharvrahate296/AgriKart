@@ -4,11 +4,11 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express'
-import { authService } from '../services/auth/authService'
-import { authMiddleware, requireEmailVerified } from '../middleware/auth'
-import { emailService } from '../services/email/emailService'
-import type { AuthResponse, LoginRequest, SignUpRequest } from '../types/auth'
-import { AppError } from '../utils/errors'
+import { authService } from '../services/auth/authService.js'
+import { authMiddleware, requireEmailVerified } from '../middleware/auth.js'
+import { emailService } from '../services/email/emailService.js'
+import type { AuthResponse, LoginRequest, SignUpRequest } from '../types/auth.js'
+import { AppError } from '../utils/errors.js'
 
 const router = Router()
 
@@ -212,7 +212,7 @@ router.post(
       // Verify OTP passed above; now look up the user's auth ID from the profiles table.
       // NOTE: Must use 'profiles', NOT 'users' — profiles is the authoritative metadata table
       //       that is always kept in sync with auth.users via the on_auth_user_created trigger.
-      const { getSupabaseAdminClient } = await import('../config/supabase')
+      const { getSupabaseAdminClient } = await import('../config/supabase.js')
       const supabaseAdmin = getSupabaseAdminClient()
 
       const { data: userData, error: userError } = await supabaseAdmin

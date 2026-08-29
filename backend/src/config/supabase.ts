@@ -209,7 +209,7 @@ export async function sendPasswordResetEmail(email: string): Promise<void> {
 
   // Optionally send via custom SMTP — imported lazily to avoid circular dep
   try {
-    const { emailService } = await import('../services/email/emailService')
+    const { emailService } = await import('../services/email/emailService.js')
     await emailService.sendVerificationEmail(email, data.properties.action_link)
   } catch (emailErr) {
     console.error('[supabase] Custom SMTP send failed, link was still generated:', emailErr)

@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express'
-import { optimizeRoute, distanceKm, Location } from '../services/marketplace/logisticsService'
+import { optimizeRoute, distanceKm, Location } from '../services/marketplace/logisticsService.js'
 
 const router = Router()
 

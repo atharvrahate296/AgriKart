@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express'
-import { matchDemandsToYields, getAggregationDashboard } from '../services/marketplace/aggregationService'
-import { getSupabaseAdminClient } from '../config/supabase'
+import { matchDemandsToYields, getAggregationDashboard } from '../services/marketplace/aggregationService.js'
+import { getSupabaseAdminClient } from '../config/supabase.js'
 
 const router = Router()
 
